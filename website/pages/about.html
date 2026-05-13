@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>About, Sports 3D</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="About Sports 3D, Lab 10 aligned about page covering the project, design, technology used and testing.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style_button.css">
+
+  <!-- About-page styles: screenshot grid + lightbox (Lab 10 image pop-out) -->
+  <style>
+    .shot-grid { display: grid; gap: 14px; margin: 14px 0; }
+    .shot-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .shot-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 768px) {
+      .shot-grid.cols-2.shot-grid.cols-3 { grid-template-columns: 1fr; }
+    }
+    .toc-list { columns: 2; column-gap: 30px; margin-bottom: 0; }
+    @media (max-width: 576px) {
+      .toc-list { columns: 1; }
+    }
+    .shot {
+      background: rgba(255,255,255.03);
+      border: 1px solid rgba(255,255,255.08);
+      border-radius: 10px; overflow: hidden;
+      transition: border-color .2s, transform .2s;
+    }
+    .shot:hover { border-color: rgba(126,238,255.4); transform: translateY(-2px); }
+    .shot img {
+      width: 100%; display: block; cursor: zoom-in;
+      transition: opacity .2s; background: #0b0e1a; min-height: 140px;
+    }
+    .shot img:hover { opacity: .9; }
+    .shot .cap {
+      padding: 10px 14px; color: #aaa; font-size: .8rem; line-height: 1.55;
+      border-top: 1px solid rgba(255,255,255.05);
+    }
+
+    /* lightbox modal for the image pop-outs */
+    #lightbox {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0.92); display: none;
+      align-items: center; justify-content: center; padding: 30px;
+      cursor: zoom-out;
+    }
+    #lightbox.open { display: flex; }
+    #lightbox img {
+      max-width: 95%; max-height: 92vh; border-radius: 8px;
+      box-shadow: 0 12px 60px rgba(0,0,0.8);
+    }
+    #lightbox .lb-close {
+      position: absolute; top: 16px; right: 22px;
+      background: rgba(255,255,255.1); color: #fff; border: 0;
+      width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem;
+      cursor: pointer; line-height: 1;
+    }
+    #lightbox .lb-close:hover { background: rgba(255,255,255.2); }
+
+    /* style for the Generative AI Usage Record table */
+    table.ai-record { border-collapse: collapse; width: 100%; }
+    table.ai-record th, table.ai-record td {
+      border: 2px solid rgba(126,238,255.25);
+      padding: 10px; text-align: left; color: #ccc; font-size: .9rem;
+    }
+    table.ai-record th {
+      background: rgba(126,238,255.08); color: #7ef;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: .8rem;
+    }
+
+    /* style for the code snippet blocks shown as evidence */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid rgba(255,255,255.08);
+      border-radius: 8px;
+      margin: 12px 0 18px;
+      overflow: hidden;
+    }
+    .code-block .code-head {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255.03);
+      border-bottom: 1px solid rgba(255,255,255.08);
+      padding: 6px 14px;
+      font-size: .72rem; color: #888;
+      font-family: 'SF Mono', Menlo, Consolas, monospace;
+    }
+    .code-block .code-head .lang {
+      color: #7ef; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    }
+    .code-block pre {
+      margin: 0; padding: 14px 16px;
+      font-family: 'SF Mono', Menlo, Consolas, monospace;
+      font-size: .8rem; line-height: 1.55;
+      color: #ddd;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .code-block .cmt { color: #6a9955; }
+    .code-block .kw  { color: #569cd6; }
+    .code-block .str { color: #ce9178; }
+    .code-block .num { color: #b5cea8; }
+    .code-block .fn  { color: #dcdcaa; }
+    .code-block .tag { color: #4ec9b0; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark" style="background:rgba(0,0,0.7);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255.08);">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a class="navbar-brand" href="../index.html">&#8592; SPORTS 3D</a>
+    <span class="text-muted" style="font-size:.85rem;">About &amp; Docs</span>
+  </div>
+</nav>
+
+<main>
+
+<!--Hero section at the top of the page-->
+<div class="hero text-center" style="position:relative;overflow:hidden;">
+  <img src="../assets/images/sports.jpeg" alt="Sports 3D, three courts overview"
+       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.35;pointer-events:none;z-index:0;">
+  <div style="position:relative;z-index:1;">
+    <div class="container">
+      <h1>ABOUT THIS PROJECT</h1>
+      <p class="mt-2">A 3D interactive sports visualisation built with Blender &amp; Three.js</p>
+      <div class="mt-3">
+        <span class="pill-tag">Three.js r163</span>
+        <span class="pill-tag green">Blender 5.1</span>
+        <span class="pill-tag orange">PHP + SQLite</span>
+        <span class="pill-tag">Bootstrap 5.3</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row g-4">
+
+    <!--quick nav table of contents-->
+    <div class="col-12">
+      <div class="section-card" style="background:rgba(126,238,255.04);">
+        <h3 style="margin-bottom:8px;">On this page</h3>
+        <ul class="toc-list">
+          <li><a href="#about">About</a></li>
+          <li><a href="#scenes">What's in each scene</a></li>
+          <li><a href="#models">The 3D Models</a></li>
+          <li><a href="#design">Design &amp; Responsiveness</a></li>
+          <li><a href="#integration">Media Integration</a></li>
+          <li><a href="#interaction">Interaction</a></li>
+          <li><a href="#mvc">MVC Architecture</a></li>
+          <li><a href="#tech">Technologies Used</a></li>
+          <li><a href="#rationale">Why I Chose These Technologies</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#deeper">Going Beyond the Labs</a></li>
+          <li><a href="#accessibility">Accessibility</a></li>
+          <li><a href="#testing">Testing Strategy</a></li>
+          <li><a href="#evidence">Evidence of Testing</a></li>
+          <li><a href="#feedback">User Feedback</a></li>
+          <li><a href="#originality">Statement of Originality</a></li>
+          <li><a href="#ai">Generative AI Record</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!--About section-->
+    <div class="col-12" id="about">
+      <div class="section-card">
+        <h3>About</h3>
+        <p>I'm a sports fan, so when I had to pick a subject for my Web 3D Application I went with the three sports I actually enjoy watching and playing: <strong>tennis</strong>, <strong>basketball</strong> and <strong>football</strong>. The result is <strong>Sports 3D</strong>: a site that brings each of those sports into the browser as an interactive 3D scene you can rotate, zoom around and trigger animations on. The fun of it for me was trying to capture a bit of what makes each sport feel distinctive (the openness of a tennis court, the high-key arena lighting of a basketball game, the outdoor daylight of a football pitch) rather than building three identical scenes with different markings.</p>
+      </div>
+    </div>
+
+    <!--what's in each 3D scene-->
+    <div class="col-12" id="scenes">
+      <div class="section-card">
+        <h3>What's in each scene</h3>
+        <p>A quick reference for what each sport page actually contains. All three were modelled in Blender 5.1 and exported as <strong>.glb</strong> files; the table below summarises the differences.</p>
+        <table class="ai-record">
+          <thead>
+            <tr><th>Sport</th><th>Scene</th><th>Animations (Blender clip names)</th><th>Lighting setup</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Football</strong></td>
+              <td>Half pitch (one goal end). 30 m × 30 m grass with mowing stripes, full penalty box, goal area, penalty spot, goal posts with net, soccer ball at the spot.</td>
+              <td><strong>FootballBallAction:</strong> striker contact at frame 22, ball arcs over and lands in the top corner of the net at frame 60.</td>
+              <td>AmbientLight + a single warm DirectionalLight to give outdoor daylight.</td>
+            </tr>
+            <tr>
+              <td><strong>Basketball</strong></td>
+              <td>Half court (one hoop end). 15 m × 17 m floor with key, 3-point arc, half-court semicircle, full stanchion (pole + double-arm bracket + backboard + rim + net). Two floor surfaces ship in the GLB (<strong>Floor_Wood</strong> and <strong>Floor_Concrete</strong>), switchable at runtime.</td>
+              <td><strong>Basketball_Shot</strong> (swish + diminishing bounces at frame 46) and <strong>Basketball_Dribble</strong> (five bounces in place, ground impacts every 18 frames).</td>
+              <td>AmbientLight + six PointLights laid out as a 3 × 2 arena rig at 9.2 m height. Only two cast shadows to avoid harsh shadow bands.</td>
+            </tr>
+            <tr>
+              <td><strong>Tennis</strong></td>
+              <td>Full court with painted lines, net with band and posts, ball and a rebuilt tennis racket (oval head, 16 × 19 string grid, V-yoke throat, gripped handle, 40 parented parts).</td>
+              <td><strong>RacketRootAction</strong> (back-swing → contact at frame 11 → follow-through) and <strong>BallAction.001</strong> (parabolic arc + two diminishing bounces on the far side).</td>
+              <td>AmbientLight + HemisphereLight for sky/ground bounce + DirectionalLight for sun. Outdoor daylight feel.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!--3D models built in Blender-->
+    <div class="col-12" id="models">
+      <div class="section-card">
+        <h3>The 3D Models</h3>
+        <p>I built all three scenes in Blender 5.1, modelling each one to follow the regulation dimensions of the real sport.</p>
+        <ul>
+          <li><strong>Geometry:</strong> Blender primitives only; playing surfaces, markings, nets, posts and stands kept as separate meshes so each component can have its own material and be toggled independently.</li>
+          <li><strong>Lighting:</strong> added in the Three.js scene per page rather than baked into the GLB, so each sport has a lighting style that matches its mood (see the table above for the per-sport breakdown).</li>
+          <li><strong>Cameras:</strong> each sport page has a small set of preset cameras (e.g. broadcast, low-angle, top-down) that the user can swap between. The football page also reads the camera transform straight from the Blender camera node in the GLB to keep framing consistent with the source file.</li>
+          <li><strong>Materials:</strong> solid-colour PBR materials per component. Procedural shaders are avoided because glTF only exports image textures + base PBR, so anything I built with Voronoi/Noise gets simplified at export. Only image-textured or flat-PBR materials survive the round-trip.</li>
+          <li><strong>Animations:</strong> keyframed in Blender's timeline at 30 fps with Bezier auto-clamped interpolation for smooth parabolic motion. The mixer in each page plays the GLB clip directly, no JS keyframes.</li>
+          <li><strong>Render:</strong> ACES filmic tone mapping applied in the Three.js renderer for a more cinematic look. Each GLB is self-contained.</li>
+        </ul>
+
+        <!-- Tennis details -->
+        <h4 class="mt-4">Tennis</h4>
+        <ul>
+          <li><strong>Authoring:</strong> Blender 5.1, Y-up coordinate system, exported as GLB.</li>
+          <li><strong>Dimensions:</strong> ITF standard hard court, 23.77 × 10.97 m.</li>
+          <li><strong>Mesh list:</strong> Court surface, Painted lines and surrounds, Net (0.914 m centre height), Net posts and band, Racket (oval head frame, 16 × 19 string grid, V-yoke throat, gripped handle, 40 parented meshes), Ball.</li>
+          <li><strong>Materials:</strong> All solid-colour PBR (no image textures). Metalness 0, roughness varies per component. Court blue/green; ball yellow; racket frame black.</li>
+          <li><strong>Lighting rig:</strong>
+            <ul>
+              <li><strong>AmbientLight(#ffffff, intensity 0.65):</strong> general scene fill.</li>
+              <li><strong>HemisphereLight(sky #aac8e0, ground #2d7a3a, intensity 0.5):</strong> sky/ground bounce.</li>
+              <li><strong>DirectionalLight(#fff8e0, intensity 1.6)</strong> at world pos (20, 50, 30), sun; casts shadow, 2048 × 2048 px shadow map.</li>
+            </ul>
+          </li>
+          <li><strong>Camera presets</strong> (PerspectiveCamera, FOV 55, Y-up):
+            <ul>
+              <li>Behind Baseline: pos (0, 14, 26) → target (0, 0.5, 0)</li>
+              <li>Umpire Chair: Net Side: pos (6.4, 3.2, −1.5) → target (0, 0.9, 0)</li>
+              <li>Overhead: Bird's Eye: pos (0, 40, 0.5) → target (0, 0, 0)</li>
+              <li>Net Level: Close Up: pos (0, 2.5, 4) → target (0, 1, 0)</li>
+            </ul>
+          </li>
+          <li><strong>Animation clips</strong> (LoopOnce, clampWhenFinished):
+            <ul>
+              <li><strong>RacketRootAction:</strong> back-swing start → racket contacts ball at frame 11 → follow-through.</li>
+              <li><strong>BallAction.001:</strong> parabolic arc from contact, two diminishing bounces on far side; crowd cheer (<strong>cheering.mp3</strong>) fires at frame 50.</li>
+            </ul>
+          </li>
+          <li><strong>Post-processing:</strong> UnrealBloomPass strength 0.40, radius 0.80, threshold 0.85.</li>
+          <li><strong>Scene background:</strong> #8aa7be; FogExp2 density 0.009.</li>
+        </ul>
+
+        <!-- Basketball details -->
+        <h4 class="mt-4">Basketball</h4>
+        <ul>
+          <li><strong>Authoring:</strong> Blender 5.1, Z-up coordinate system.</li>
+          <li><strong>Dimensions:</strong> NBA half-court, approx 15 × 17 m playing surface.</li>
+          <li><strong>Mesh list:</strong> Floor_Wood (visible by default), Floor_Concrete (hidden on load, runtime-switchable), Court markings (key, 3-point arc, half-court arc), Pole, Arm, ArmLower, ArmStrut, Backboard, BackboardFrB, BackboardFrL, BackboardFrR, BackboardFrT, Rim, Square1–Square4, net, Basketball (animated).</li>
+          <li><strong>Materials:</strong> All solid-colour PBR. Hardwood floor uses a flat orange-brown tone rather than a wood-grain texture map; concrete floor is grey. Stanchion parts excluded from shadow casting (NO_SHADOW_CAST set).</li>
+          <li><strong>Lighting rig:</strong>
+            <ul>
+              <li><strong>AmbientLight(#221a10, intensity 0.4):</strong> warm dark fill.</li>
+              <li>Six <strong>PointLight(#fff3cc, intensity 65, range 24 m)</strong> at Z = 9.2 m in a 3 × 2 arena grid: positions (−9,−4), (0,−4), (9,−4), (−9,4), (0,4), (9,4). The two centre lights at (0,−4) and (0,4) cast shadows (1024 × 1024 px map, bias −0.0005, normalBias 0.05). The other four lights do not cast shadows.</li>
+            </ul>
+          </li>
+          <li><strong>Camera presets</strong> (PerspectiveCamera, FOV 55, Z-up):
+            <ul>
+              <li>Behind 3pt Line: pos (−22, 0, 9) → target (13.35, 0, 3.05)</li>
+              <li>Side Court View: pos (0, −16, 6) → target (0, 0, 1)</li>
+              <li>Overhead: Bird's Eye: pos (0, 0, 32) → target (0, 0, 0)</li>
+              <li>Under Basket: Low Angle: pos (12.8, −5, 3) → target (13.35, 0, 3.05)</li>
+            </ul>
+          </li>
+          <li><strong>Animation clips:</strong>
+            <ul>
+              <li><strong>Basketball_Dribble:</strong> five bounces in place, LoopRepeat.</li>
+              <li><strong>Basketball_Shot:</strong> ball arcs from near 3-point line; swish (<strong>basketball-swish_OMsr9CN.mp3</strong>) fires at frame 46; diminishing bounces. LoopOnce.</li>
+            </ul>
+          </li>
+          <li><strong>Post-processing:</strong> UnrealBloomPass strength 0.50, radius 0.80, threshold 0.80.</li>
+          <li><strong>Scene background:</strong> #87ceeb; Fog linear 40–100 m.</li>
+        </ul>
+
+        <!-- Football details -->
+        <h4 class="mt-4">Football</h4>
+        <ul>
+          <li><strong>Authoring:</strong> Blender 5.1, Z-up coordinate system.</li>
+          <li><strong>Dimensions:</strong> FIFA half-pitch section, approx 30 × 30 m.</li>
+          <li><strong>Mesh list:</strong> Pitch surface (8 alternating mown grass stripes), Touchlines, Half-line, Penalty spot, Penalty area and goal area markings, Goal posts, Crossbar, Back frame, Net panels (multiple), SoccerBall (animated), 3-tier stand with ~40 crowd figures.</li>
+          <li><strong>Materials:</strong> All solid-colour PBR except the SoccerBall, which uses a baked black-and-white panel texture, the only image-based texture in the entire project.</li>
+          <li><strong>Lighting rig:</strong>
+            <ul>
+              <li><strong>AmbientLight(#ffffff, intensity 0.7):</strong> general fill.</li>
+              <li><strong>DirectionalLight(#fff8e0, intensity 1.4)</strong> at world pos (15, −10, 40), sun; casts shadow, 2048 × 2048 px, frustum ±55 m. toneMappingExposure 1.0.</li>
+            </ul>
+          </li>
+          <li><strong>Camera presets</strong> (PerspectiveCamera, FOV 55, Z-up):
+            <ul>
+              <li>Behind Goal: pos (30, 0, 8) → target (0, 0, 2)</li>
+              <li>Midfield Touchline: pos (0, −22, 7) → target (15, 0, 1)</li>
+              <li>Overhead: Aerial: pos (10, −18, 50) → target (10, 0, 0)</li>
+              <li>Corner Kick: Low Angle: pos (24, −17, 3) → target (8, 0, 1)</li>
+            </ul>
+          </li>
+          <li><strong>Animation clips</strong> (LoopOnce):
+            <ul>
+              <li><strong>FootballBallAction:</strong> striker contacts ball at frame 22, ball arcs to top corner, lands at frame 60; crowd cheer (<strong>cheering.mp3</strong>) fires at frame 70.</li>
+            </ul>
+          </li>
+          <li><strong>Post-processing:</strong> UnrealBloomPass strength 0.35, radius 0.80, threshold 0.88.</li>
+          <li><strong>Scene background:</strong> #87ceeb; Fog linear 70–200 m.</li>
+        </ul>
+
+        <p class="mt-3">Short clip of one of the Blender models with its animation playing inside Blender. This is what gets exported to the GLB and replayed in the browser via Three.js's <strong>AnimationMixer</strong>.</p>
+        <figure class="shot" style="max-width:720px;margin:10px auto 0;">
+          <video src="../assets/videos/blender_animation.mp4" controls muted playsinline preload="metadata"
+                 style="width:100%;display:block;background:#0b0e1a;"></video>
+          <div class="cap">Blender, animation timeline playing on a sport model before GLB export.</div>
+        </figure>
+      </div>
+    </div>
+
+    <!--Design section-->
+    <div class="col-12" id="design">
+      <div class="section-card">
+        <h3>Design &amp; Responsiveness</h3>
+        <h4>Usability &amp; look and feel</h4>
+        <ul>
+          <li>Bootstrap 5.3 fluid grid so columns reflow predictably across screen sizes.</li>
+          <li>Consistent navbar on every page: user is always one click from anywhere on the site.</li>
+          <li>Anton display font (Google Fonts, SIL OFL) loaded as <strong>sports.ttf</strong> for headings gives the four pages a single visual identity.</li>
+          <li>Per-sport bloom intensity tuning so users can tell at a glance which scene they're in.</li>
+        </ul>
+
+        <h4>Responsiveness</h4>
+        <p>Two iterations were needed to get this right on the sport pages.</p>
+        <ul>
+          <li><strong>Problem 1:</strong> The right-hand controls column on tennis/basketball/football didn't appear at all on mobile; the side panel was simply hidden below 700&nbsp;px, leaving users with the 3D court but no way to trigger animations or switch cameras.</li>
+          <li><strong>Fix 1:</strong> Rebuilt the side panel as a slide-in drawer triggered by a floating ☰ Controls button (see <strong>js/drawer.js</strong>); the 3D scene keeps the full viewport and controls are summoned on demand.</li>
+          <li><strong>Problem 2:</strong> Tapping an animation opened the drawer but then the panel covered the scene, so users had to manually close the drawer before they could see the animation play.</li>
+          <li><strong>Fix 2:</strong> Added a click listener that auto-closes the drawer when an animation or camera button is tapped, but deliberately leaves it open for scene-control toggles (wireframe, bloom, audio, lighting) so users can flip several in a row. Gated to &lt;700&nbsp;px so desktop is unaffected.</li>
+        </ul>
+
+        <div class="shot-grid cols-3 mt-3">
+          <figure class="shot">
+            <img src="../assets/images/screenshots/mobile_before_no_controls.png" alt="Tennis on iPhone, original build with no controls"
+                 data-cap="Before fix, tennis.html on iPhone 14 Pro Max. The 3D court renders but the side panel is hidden, so there is no way to trigger animations or switch cameras.">
+            <div class="cap"><b>Before:</b> No controls accessible on mobile.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/mobile_drawer_closed.png" alt="Tennis on iPhone, drawer closed with floating Controls button"
+                 data-cap="After first fix, floating ☰ Controls button (bottom-right) summons the slide-in drawer. The 3D court keeps the full viewport.">
+            <div class="cap"><b>Fix 1:</b> Floating ☰&nbsp;Controls button added.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/mobile_drawer_open.png" alt="Tennis on iPhone, drawer open showing all controls"
+                 data-cap="Drawer open, animations, camera views, scene controls and scene objects all accessible. Tapping an animation or camera auto-closes the drawer so the user can see the result; toggles keep the drawer open.">
+            <div class="cap"><b>Fix 2:</b> Drawer open; auto-closes on animation/camera tap.</div>
+          </figure>
+        </div>
+
+        <p class="mt-3">I tested all of this at 430&nbsp;px (iPhone 14 Pro Max), 820&nbsp;px (iPad Air) and 1920&nbsp;px (desktop) using Chrome DevTools' Device Toolbar, plus on macOS Chrome and Safari at desktop width.</p>
+      </div>
+    </div>
+
+    <!--how media is integrated (audio, images, models)-->
+    <div class="col-12" id="integration">
+      <div class="section-card">
+        <h3>Media Integration</h3>
+        <p>All six media types from the checklist are integrated:</p>
+        <ul>
+          <li><strong>3D models:</strong> one <strong>.glb</strong> per sport, exported from Blender with cameras and animations enabled.</li>
+          <li><strong>Video:</strong> <strong>functional_demo.mp4</strong> screen-recording demonstrating each sport's interactions.</li>
+          <li><strong>Audio:</strong> sport-specific sound effects fired at exact animation frames (kick at football frame 22, swish at basketball frame 46, racket-hit at tennis frame 11, etc.), gated behind an explicit toggle so the page never autoplays sound.</li>
+          <li><strong>Images:</strong> the hero photo across the landing and About pages, optimised from 2.8&nbsp;MB down to 433&nbsp;KB after Lighthouse flagged it.</li>
+          <li><strong>Text:</strong> descriptive content in the side panels of each sport page.</li>
+          <li><strong>Animations:</strong> Blender-authored (tennis racket swing + ball bounce, basketball shot/dribble, football scoring run), triggered by button presses with frame-synced audio cues.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--Interaction section-->
+    <div class="col-12" id="interaction">
+      <div class="section-card">
+        <h3>Interaction</h3>
+        <p>Users interact with the site at three levels:</p>
+        <ul>
+          <li><strong>Manipulate:</strong> OrbitControls allow rotate / zoom / pan via mouse, trackpad or touch on every 3D scene.</li>
+          <li><strong>View:</strong> four named camera presets per sport, plus a wireframe toggle revealing the underlying geometry.</li>
+          <li><strong>Other pages:</strong> the landing page has clickable sport cards routing to each scene; the dedicated <a href="stats.html">Stats page</a> shows live AJAX-polled interaction counts from the PHP/SQLite backend.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--MVC architecture explanation-->
+    <div class="col-12" id="mvc">
+      <div class="section-card">
+        <h3>MVC Architecture</h3>
+
+        <h4>Data flow</h4>
+        <p>When a user presses a button on a sport page, the page calls <strong>SportsAPI.recordInteraction(sport, type)</strong> from <strong>js/dataLoader.js</strong>. That function POSTs a JSON body to <strong>api.php</strong>. The Controller receives the request, validates the <strong>sport</strong> value against the allowlist <strong>['tennis','basketball','football']</strong> and the <strong>type</strong> value against <strong>['hit','juggle','shoot','dribble','swing']</strong>, then delegates to the Model. The Model runs a PDO prepared statement and writes a row to the SQLite database. On the read side, the Stats page calls <strong>SportsAPI.loadStats()</strong> every 5 seconds via a <strong>setInterval</strong>; the Controller calls the Model's aggregate query methods, serialises the result as JSON, and the Stats page updates the DOM stat boxes and table without a full page reload.</p>
+
+        <h4>The three layers</h4>
+        <p><strong>Model</strong> (<strong>application/model/model.php</strong>): handles all PDO/SQLite access; opens the database connection in the constructor using the path <strong>__DIR__ . '/../../db/sports.db'</strong>; provides four public methods: <strong>dbCreateTable()</strong>, <strong>dbInsertData()</strong>, <strong>dbGetData()</strong>, and <strong>dbGetStats()</strong>. It contains no business logic, no HTTP-layer code, and no input validation. It is a pure data-access layer.</p>
+        <p><strong>Controller</strong> (<strong>application/controller/controller.php</strong>): validates the incoming <strong>sport</strong> field against <strong>['tennis','basketball','football']</strong> and the <strong>type</strong> field against <strong>['hit','juggle','shoot','dribble','swing']</strong> before delegating any operation to the Model. It returns plain PHP arrays to the API router; it never touches HTTP headers or writes SQL directly.</p>
+        <p><strong>View</strong> (<strong>stats.html</strong> + <strong>application/view/viewStats.php</strong>): reads JSON from the API endpoint; updates the DOM stat boxes and interaction table on each poll cycle. When the tab is hidden the Page Visibility API (<strong>document.addEventListener('visibilitychange'...)</strong>) pauses polling to avoid unnecessary server requests, resuming when the tab becomes visible again.</p>
+
+        <h4>Key code snippet: Model constructor and <strong>dbInsertData</strong></h4>
+        <div class="code-block">
+          <div class="code-head">
+            <span class="lang">PHP</span>
+            <span>application/model/model.php</span>
+          </div>
+          <pre><span class="kw">class</span> <span class="tag">Model</span> {
+    <span class="kw">private</span> <span class="tag">PDO</span> <span class="fn">$db</span>;
+
+    <span class="kw">public function</span> <span class="fn">__construct</span>() {
+        <span class="fn">$dbPath</span> = __DIR__ . <span class="str">'/../../db/sports.db'</span>;
+        <span class="fn">$this</span>-&gt;db = <span class="kw">new</span> <span class="tag">PDO</span>(<span class="str">'sqlite:'</span> . <span class="fn">$dbPath</span>);
+        <span class="fn">$this</span>-&gt;db-&gt;<span class="fn">setAttribute</span>(<span class="tag">PDO</span>::<span class="tag">ATTR_ERRMODE</span>, <span class="tag">PDO</span>::<span class="tag">ERRMODE_EXCEPTION</span>);
+        <span class="fn">$this</span>-&gt;db-&gt;<span class="fn">setAttribute</span>(<span class="tag">PDO</span>::<span class="tag">ATTR_DEFAULT_FETCH_MODE</span>, <span class="tag">PDO</span>::<span class="tag">FETCH_ASSOC</span>);
+    }
+
+    <span class="kw">public function</span> <span class="fn">dbInsertData</span>(<span class="kw">string</span> <span class="fn">$sport</span>, <span class="kw">string</span> <span class="fn">$type</span>): <span class="kw">int</span> {
+        <span class="fn">$stmt</span> = <span class="fn">$this</span>-&gt;db-&gt;<span class="fn">prepare</span>(
+            <span class="str">"INSERT INTO interactions (sport, type) VALUES (:sport, :type)"</span>
+        );
+        <span class="fn">$stmt</span>-&gt;<span class="fn">bindParam</span>(<span class="str">':sport'</span>, <span class="fn">$sport</span>);
+        <span class="fn">$stmt</span>-&gt;<span class="fn">bindParam</span>(<span class="str">':type'</span>,  <span class="fn">$type</span>);
+        <span class="fn">$stmt</span>-&gt;<span class="fn">execute</span>();
+        <span class="kw">return</span> (<span class="kw">int</span>) <span class="fn">$this</span>-&gt;db-&gt;<span class="fn">lastInsertId</span>();
+    }
+}</pre>
+        </div>
+
+        <h4>Dual-backend pattern</h4>
+        <p>The front-end supports two backend patterns in the same codebase. <strong>js/dataLoader.js</strong> tries the PHP/SQLite endpoint first (Lab 7/8 pattern) and automatically falls back to a static <strong>data.json</strong> file (Lab 6 pattern) if the server is unavailable. A console log on every page load reports which path is active (<strong>[Data Loader] Loaded from PHP/SQLite backend</strong> or <strong>[Data Loader] PHP unavailable, using JSON fallback</strong>), verifiable in DevTools during marking without changing any code.</p>
+      </div>
+    </div>
+
+    <!--Technologies used in the project-->
+    <div class="col-12" id="tech">
+      <div class="section-card">
+        <h3>Technologies Used</h3>
+
+        <h4>Front-end</h4>
+        <ul>
+          <li>HTML5 / CSS3</li>
+          <li>Bootstrap 5.3.3: responsive grid, accessibility primitives</li>
+          <li>Three.js r163 with OrbitControls, GLTFLoader, EffectComposer, UnrealBloomPass</li>
+          <li>Native Fetch API for AJAX</li>
+        </ul>
+
+        <h4>Back-end &amp; Data</h4>
+        <ul>
+          <li>PHP 8 with PDO: server-side routing and input validation</li>
+          <li>SQLite via PDO: interaction persistence, no separate database server required</li>
+          <li>JSON static snapshot (<strong>data.json</strong>) as Lab 6 fallback</li>
+        </ul>
+
+        <h4>3D Modelling &amp; Assets</h4>
+        <ul>
+          <li>Blender 5.1: scene modelling, rigging, animation, Python bpy scripting, GLB export</li>
+          <li>GLB / glTF 2.0</li>
+          <li>Anton display font (Google Fonts, SIL OFL) loaded as <strong>sports.ttf</strong></li>
+          <li>MP3 audio (basketball swish, crowd cheer)</li>
+          <li>MP4 video (functional demo, Blender animation)</li>
+        </ul>
+
+        <h4>Development Tools</h4>
+        <ul>
+          <li>VS Code with Live Server extension</li>
+          <li>Chrome DevTools: responsive testing, Lighthouse audits, console debugging</li>
+          <li>Chrome Lighthouse: performance, accessibility, SEO</li>
+          <li>macOS Chrome and Safari for cross-browser verification</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--Rationale for the project-->
+    <div class="col-12" id="rationale">
+      <div class="section-card">
+        <h3>Why I Chose These Technologies</h3>
+        <ul>
+          <li><strong>Three.js:</strong> the WebGL library taught and demonstrated throughout the labs. It handles GLB loading, AnimationMixer, EffectComposer, and OrbitControls out of the box, avoiding the need to write raw WebGL shader code.</li>
+          <li><strong>Bootstrap 5.3:</strong> the responsive grid framework used in the module labs. Its fluid column system and utility classes handle breakpoint reflow predictably, and its accessibility primitives (landmark roles, contrast defaults) reduce manual WCAG work.</li>
+          <li><strong>Blender 5.1:</strong> the 3D authoring tool taught in the module. Its Python <strong>bpy</strong> API lets you drive and automate the scene; it exports cleanly to GLB with cameras, animations, and PBR materials intact.</li>
+          <li><strong>PHP + SQLite:</strong> the server-side stack covered in Labs 7–8. SQLite requires no separate database server and runs natively on the university's hosting environment; PDO with prepared statements gives parameterised queries without adding a heavy ORM dependency.</li>
+          <li><strong>Native <strong>fetch()</strong> instead of jQuery:</strong> the project avoids jQuery because the modern Fetch API covers all AJAX requirements (posting JSON, error handling, polling) without an extra 87 KB dependency. The module introduced jQuery as an option but <strong>fetch()</strong> is now the browser standard.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--Features list-->
+    <div class="col-12" id="features">
+      <div class="section-card">
+        <h3>Features</h3>
+        <ul>
+          <li>Full-screen 3D sport scenes for tennis, basketball, and football, each loaded from a self-contained GLB exported from Blender.</li>
+          <li>OrbitControls on every scene: rotate, zoom, and pan via mouse, trackpad, or touch.</li>
+          <li>Four named camera presets per sport (broadcast angle, low angle, overhead, close-up).</li>
+          <li>Wireframe toggle: reveals the underlying mesh geometry of the entire scene in real time.</li>
+          <li>Bloom post-processing toggle: enables/disables UnrealBloomPass, tuned per sport (0.35 football, 0.40 tennis, 0.50 basketball).</li>
+          <li>Lighting toggle: turns the arena rig or sunlight on/off per scene.</li>
+          <li>Blender-authored animations triggered by button press (tennis swing/hit, basketball shot/dribble, football ball action).</li>
+          <li>Frame-triggered audio: sound effects fire at exact animation frame numbers, gated behind an explicit opt-in toggle.</li>
+          <li>Basketball floor surface selector: swaps Floor_Wood and Floor_Concrete mesh visibility, persisted to <strong>localStorage</strong>.</li>
+          <li>Mobile-responsive drawer: side panel collapses to a slide-in drawer on screens below 700 px, triggered by a floating hamburger button.</li>
+          <li>Live AJAX stats: Stats page polls the PHP/SQLite API every 5 s, pausing via Page Visibility API when the tab is hidden.</li>
+          <li>JSON fallback: if the PHP endpoint is unavailable, stats.html loads from <strong>data.json</strong> automatically; console indicates which mode is active.</li>
+          <li>Lightbox: click any screenshot on this page to enlarge it full-screen.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--Going beyond the labs section, for the Deeper Understanding marks-->
+    <div class="col-12" id="deeper">
+      <div class="section-card">
+        <h3>Going Beyond the Labs</h3>
+        <p>I went beyond the lab content in six ways:</p>
+        <p><strong>1. Frame-triggered audio.</strong> Each sport page fires sound effects at exact animation frames using a <strong>triggers</strong> array, for example the basketball swish plays when the shot animation reaches frame&nbsp;46, the football kick fires at frame&nbsp;22 and the crowd cheer follows at frame&nbsp;60. A <strong>played</strong> Set prevents re-firing within a playthrough, and the system integrates with the AudioContext gesture requirement via an explicit toggle so it satisfies browser autoplay policies.</p>
+        <figure class="shot" style="margin:12px 0 18px;">
+          <img src="../assets/images/screenshots/code_frame_audio.png" alt="basketball.html frame-triggered audio code">
+        </figure>
+        <p><strong>2. Post-processing pipeline.</strong> All scenes use Three.js <strong>EffectComposer</strong> chaining a <strong>RenderPass</strong> → <strong>UnrealBloomPass</strong> → <strong>OutputPass</strong>. Bloom strength is tuned per sport (0.35 for football to preserve outdoor daylight; 0.5 for basketball for arena high-key lighting), with a runtime toggle to disable it.</p>
+        <figure class="shot" style="margin:12px 0 18px;">
+          <img src="../assets/images/screenshots/code_effect_composer.png" alt="tennis.html EffectComposer chain code">
+        </figure>
+        <p><strong>3. Custom REST API with MVC architecture.</strong> The backend follows the Lab&nbsp;7 MVC pattern, <strong>model.php</strong> handles PDO/SQLite with prepared statements, <strong>controller.php</strong> validates input against allowlists, <strong>viewStats.php</strong> renders a server-side Bootstrap table, and <strong>api.php</strong> is a thin (&lt;90&nbsp;line) router. A live demo is available on the <a href="stats.html">Stats page</a>, every interaction on the sport pages POSTs to the API, and the Stats page polls it back over AJAX every five seconds.</p>
+        <figure class="shot" style="margin:12px 0 18px;">
+          <img src="../assets/images/screenshots/code_mvc_router.png" alt="api.php MVC router code">
+        </figure>
+        <p><strong>4. Basketball surface selector with localStorage persistence.</strong> The basketball court GLB contains two floor meshes (<strong>Floor_Wood</strong> and <strong>Floor_Concrete</strong>) occupying the same position in the scene. A surface-selector panel in the side panel lets users toggle between them at runtime by flipping each mesh's <strong>.visible</strong> flag, so only one is ever rendered and there is no z-fighting. The choice is persisted to <strong>localStorage</strong> under the key <strong>bball.surface</strong> and restored on next page load. The meshes are located by name after the GLTFLoader callback resolves, with a graceful <strong>console.warn</strong> if either is missing.</p>
+        <figure class="shot" style="margin:12px 0 18px;">
+          <img src="../assets/images/screenshots/code_surface_swap.png" alt="basketball.html surface swap code">
+        </figure>
+        <p><strong>5. Mobile drawer pattern.</strong> <strong>js/drawer.js</strong> is a self-contained IIFE that injects the hamburger toggle and slide-in panel at runtime, with ESC dismissal, auto-close on selection and <strong>aria-expanded</strong> state for screen readers. Activates only below 700&nbsp;px so desktop layout is unchanged.</p>
+        <figure class="shot" style="margin:12px 0 18px;">
+          <img src="../assets/images/screenshots/code_drawer.png" alt="js/drawer.js runtime DOM injection code">
+        </figure>
+        <p><strong>6. Dual-backend pattern (Lab 6 + Lab 7/8 in one codebase).</strong> <strong>js/dataLoader.js</strong> is a shared IIFE that wraps every API call site. On read it tries the PHP/SQLite endpoint first; if the server returns a non-2xx status, network error, or malformed JSON it falls back to <strong>data.json</strong> automatically. On write it no-ops silently in fallback mode rather than throwing. A console log on every page load (<strong>[Data Loader] Loaded from PHP/SQLite backend</strong> or <strong>[Data Loader] PHP unavailable, using JSON fallback</strong>) lets the marker verify which path is active in DevTools without changing any code. This demonstrates both the Lab 6 JSON pattern and the Lab 7/8 PHP+SQLite pattern in the same front-end.</p>
+      </div>
+    </div>
+
+    <!--Accessibility considerations-->
+    <div class="col-12" id="accessibility">
+      <div class="section-card">
+        <h3>Accessibility</h3>
+        <p>Accessibility was considered at three levels: page structure, interactive controls, and visual contrast. The site was built mobile-first and validated across the tools listed below.</p>
+
+        <h4>Page structure &amp; semantics</h4>
+        <ul>
+          <li>Every page wraps its main content in a <strong>&lt;main&gt;</strong> landmark and uses semantic HTML5 sectioning (<strong>&lt;nav&gt;</strong> for the top navigation, <strong>&lt;header&gt;</strong> for page intros, <strong>&lt;section&gt;</strong> for grouped content, and <strong>&lt;footer&gt;</strong> for credits) so screen readers can navigate the document outline without relying on visual cues.</li>
+          <li>Every <strong>&lt;img&gt;</strong> tag carries descriptive alt text, including the wireframe screenshots, Lighthouse audit captures, and the per-sport scene photographs.</li>
+          <li>The hamburger drawer button on mobile (<strong>js/drawer.js</strong>) sets <strong>aria-expanded="true|false"</strong> as it opens and closes, so assistive technology announces the state change.</li>
+        </ul>
+
+        <h4>Keyboard &amp; interactive controls</h4>
+        <ul>
+          <li>All camera, animation, lighting, bloom, audio, and wireframe controls are real <strong>&lt;button&gt;</strong> elements rather than styled <strong>&lt;div&gt;</strong>s, so they are reachable via Tab order and activatable with Enter or Space without any custom keybinding code.</li>
+          <li>Visible focus rings are preserved (no <strong>outline: none</strong> reset), so keyboard users always know which control has focus.</li>
+          <li>The mobile drawer can be dismissed with the Escape key as well as the close button, matching standard modal dismissal patterns.</li>
+        </ul>
+
+        <h4>Visual contrast &amp; alternative views</h4>
+        <ul>
+          <li>Body text and form fields hit WCAG 2.1 AA contrast ratios: verified against the Chrome Lighthouse Accessibility audit (final mobile score 91).</li>
+          <li>The wireframe toggle on every sport page gives a high-contrast line-art view of the geometry as an alternative to the shaded render, useful both as a visual style toggle and as a fallback view if the lit scene is hard to parse.</li>
+          <li>Audio is opt-in only via an explicit toggle, so users with hearing impairments, in quiet environments, or using screen readers are not interrupted by autoplaying sound effects.</li>
+        </ul>
+
+        <h4>Tested viewport range</h4>
+        <ul>
+          <li>Validated at 430 px (iPhone 14 Pro Max), 820 px (iPad Air) and 1920 px (desktop) using Chrome DevTools' Device Toolbar, plus on macOS Chrome and macOS Safari at desktop width. No horizontal scrolling, no clipped content, and no inaccessible controls were observed at any breakpoint.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--Testing strategy-->
+    <div class="col-12" id="testing">
+      <div class="section-card">
+        <h3>Testing Strategy</h3>
+        <p>Testing followed the five-methodology framework introduced in Lab 11. Each methodology targets a different category of failure, and together they cover functional correctness, environmental compatibility, layout integrity, accessibility compliance, and user comprehension.</p>
+
+        <h4>1. Functional testing</h4>
+        <p>Every interactive control on every page was exercised by hand and verified against expected behaviour. This included loading each sport's GLB, triggering every animation clip, switching between every camera preset, toggling wireframe / bloom / lighting / audio, swapping the basketball floor surface and confirming the choice persists across page reloads (<strong>localStorage</strong>), and verifying the Stats page polls and updates without a full page reload. Console errors were monitored throughout, the final build runs clean.</p>
+
+        <h5 style="color:#7ef;font-size:.9rem;margin:18px 0 10px;">3D interaction matrix</h5>
+        <div style="overflow-x:auto;">
+        <table class="ai-record">
+          <thead>
+            <tr><th>Interaction</th><th>Tennis</th><th>Basketball</th><th>Football</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Orbit camera (mouse drag / touch)</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Zoom (scroll / pinch)</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Animation 1</td><td>✓ Hit Ball</td><td>✓ Shoot</td><td>✓ Ball Animation</td></tr>
+            <tr><td>Animation 2</td><td>✓ Swing Racket</td><td>✓ Dribble</td><td>—</td></tr>
+            <tr><td>Camera, Default</td><td>✓ Behind Baseline</td><td>✓ Behind 3pt Line</td><td>✓ Behind Goal</td></tr>
+            <tr><td>Camera, alt 1</td><td>✓ Umpire Chair, Net Side</td><td>✓ Side Court View</td><td>✓ Midfield Touchline</td></tr>
+            <tr><td>Camera, alt 2</td><td>✓ Overhead, Bird's Eye</td><td>✓ Overhead, Bird's Eye</td><td>✓ Overhead, Aerial</td></tr>
+            <tr><td>Camera, alt 3</td><td>✓ Net Level, Close Up</td><td>✓ Under Basket, Low Angle</td><td>✓ Corner Kick, Low Angle</td></tr>
+            <tr><td>Toggle, Wireframe</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Toggle, Bloom Post-FX</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Toggle, Audio</td><td>✓</td><td>✓</td><td>✓</td></tr>
+            <tr><td>Toggle, Lighting</td><td>✓ Lighting</td><td>✓ Arena Lights</td><td>✓ Sunlight</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p style="color:#aaa;font-size:.88rem;margin-top:10px;">Every interaction triggered the expected scene change with no runtime errors logged to the console.</p>
+
+        <h4>2. Cross-browser testing</h4>
+        <p>The site was developed on macOS Chrome and verified on macOS Safari. Both browsers render the Three.js scenes, EffectComposer bloom pipeline, and Bootstrap layout identically. No browser-specific JavaScript or CSS workarounds were required.</p>
+
+        <div style="overflow-x:auto;margin:12px 0;">
+        <table class="ai-record">
+          <thead>
+            <tr><th>Browser</th><th>Engine</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Chrome</td><td>Blink</td><td>Renders correctly; bloom, fonts, layout and interactions all behave as designed</td></tr>
+            <tr><td>Safari</td><td>WebKit</td><td>Renders correctly; bloom, fonts, layout and interactions all match Chrome</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p style="color:#aaa;font-size:.88rem;">The tennis scene was used as the cross-browser test page because it exercises the largest rendering surface, Three.js WebGL, GLB model loading, UnrealBloomPass, custom fonts, side panel and Bootstrap grid. Firefox (Gecko) was not available for direct testing this iteration; given Three.js, Bootstrap 5 and GLB are engine-agnostic, Gecko parity is expected but unverified.</p>
+
+        <figure class="shot" style="max-width:900px;margin:14px 0 18px;">
+          <img src="../assets/images/screenshots/fig13_safari_tennis.png" alt="Tennis scene rendered in Safari on macOS">
+          <div class="cap">Tennis scene rendered in Safari (WebKit) on macOS. Court geometry, stand seating, lighting and net are visually consistent with the Chrome render. Cross-browser parity confirmed on the WebKit engine.</div>
+        </figure>
+
+        <h4>3. Responsiveness testing</h4>
+        <p>Layouts were tested at three representative viewport widths using Chrome DevTools' Device Toolbar, 430 px (iPhone 14 Pro Max), 820 px (iPad Air) and 1920 px (desktop). The mobile drawer pattern was introduced specifically as a result of this testing, after the initial build's side panel proved inaccessible below 700 px (see Design &amp; Responsiveness for the before/after iteration).</p>
+
+        <h4>4. Accessibility testing</h4>
+        <p>Chrome Lighthouse was the primary automated tool. It runs against a live HTTP server, simulates a throttled mobile device, and produces graded 0–100 scores across Performance, Accessibility, Best Practices and SEO. Audits were run on every page; index.html is reported here as the representative result, with other pages producing near-identical scores due to shared CSS and structure.</p>
+
+        <h5 style="color:#7ef;font-size:.9rem;margin:18px 0 10px;">Initial audits, mobile and desktop</h5>
+        <div class="shot-grid cols-2">
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig01_lighthouse_mobile_initial.png" alt="Initial Lighthouse mobile audit showing 74/87/96/82">
+            <div class="cap">Initial mobile audit, 74 / 87 / 96 / 82.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig02_lighthouse_desktop_initial.png" alt="Initial Lighthouse desktop audit showing 86/87/96/82">
+            <div class="cap">Initial desktop audit, 86 / 87 / 96 / 82. Performance is higher than mobile because Lighthouse simulates throttled CPU/network only in mobile mode; the other three categories assess code quality and are identical.</div>
+          </figure>
+        </div>
+
+        <h5 style="color:#7ef;font-size:.9rem;margin:18px 0 10px;">Issues identified &amp; action taken</h5>
+        <div class="shot-grid cols-2" style="margin-bottom:14px;">
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig04_lighthouse_accessibility_issues.png" alt="Lighthouse Accessibility details showing contrast and missing main landmark issues">
+            <div class="cap">Accessibility audit details, flagged contrast on muted text and a missing &lt;main&gt; landmark.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig05_lighthouse_seo_issues.png" alt="Lighthouse SEO details showing missing meta description and invalid robots.txt">
+            <div class="cap">SEO audit details, flagged a missing meta description and invalid robots.txt (110 crawl errors).</div>
+          </figure>
+        </div>
+        <div style="overflow-x:auto;">
+        <table class="ai-record">
+          <thead>
+            <tr><th>Category</th><th>Issue flagged</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Performance</td>
+              <td>Hero image 2.8 MB, LCP penalty</td>
+              <td>FIX, re-exported at 433 KB; 13-point Performance gain</td>
+            </tr>
+            <tr>
+              <td>Accessibility</td>
+              <td>Missing <strong>&lt;main&gt;</strong> landmark; low-contrast muted text</td>
+              <td>FIX, added <strong>&lt;main&gt;</strong> to all pages; contrast accepted as intentional dark-theme aesthetic</td>
+            </tr>
+            <tr>
+              <td>SEO</td>
+              <td>Missing meta description; invalid robots.txt (110 errors)</td>
+              <td>FIX, added per-page <strong>&lt;meta name="description"&gt;</strong>; replaced robots.txt with a valid two-line file</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+
+        <h5 style="color:#7ef;font-size:.9rem;margin:18px 0 10px;">Score progression, initial → after image fix → final</h5>
+        <div style="overflow-x:auto;margin-bottom:14px;">
+        <table class="ai-record">
+          <thead>
+            <tr><th>Stage</th><th>Performance</th><th>Accessibility</th><th>Best Practices</th><th>SEO</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Initial</td><td>74</td><td>87</td><td>96</td><td>82</td></tr>
+            <tr><td>After fix #1 (image compression)</td><td>87</td><td>87</td><td>96</td><td>82</td></tr>
+            <tr><td>After fixes #2–4 (landmark, meta desc, robots.txt)</td><td>88</td><td>91</td><td>96</td><td>100</td></tr>
+            <tr><td><strong>Final</strong></td><td><strong>88</strong></td><td><strong>91</strong></td><td><strong>96</strong></td><td><strong>100</strong></td></tr>
+          </tbody>
+        </table>
+        </div>
+        <div class="shot-grid cols-3">
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig01_lighthouse_mobile_initial.png" alt="Initial mobile audit 74/87/96/82">
+            <div class="cap"><b>Initial:</b> 74 / 87 / 96 / 82.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig06_lighthouse_after_image_fix.png" alt="Mobile audit after image compression fix 87/87/96/82">
+            <div class="cap"><b>After fix #1</b> (image compression only), 87 / 87 / 96 / 82. A 13-point Performance gain from a single 2.8 MB → 433 KB image swap.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig07_lighthouse_mobile_final.png" alt="Final mobile audit 88/91/96/100">
+            <div class="cap"><b>Final:</b> 88 / 91 / 96 / 100, after all four fixes applied.</div>
+          </figure>
+        </div>
+
+        <h5 style="color:#7ef;font-size:.9rem;margin:18px 0 10px;">Unresolved warnings, justification</h5>
+        <ul style="color:#ccc;font-size:.88rem;line-height:1.9;">
+          <li>Render-blocking Bootstrap CSS: mitigated by serving over localhost HTTP, which already starts concurrent; a CDN with HTTP/2 push would eliminate this in production.</li>
+          <li>Cache lifetimes: a server-side concern; the university ITS environment sets cache headers outside of project code, so this is noted but cannot be fixed within the submission.</li>
+          <li>Image delivery: Lighthouse flags the still-served full-resolution PNG screenshots on the About page; these are evidence assets and converting them to WebP / lazily loading them was out of scope.</li>
+        </ul>
+        <figure class="shot" style="max-width:900px;margin:14px 0 18px;">
+          <img src="../assets/images/screenshots/fig08_lighthouse_remaining_warnings.png" alt="Lighthouse Performance Insights panel after all fixes showing remaining warnings">
+          <div class="cap">Remaining Performance Insights after the four fixes, render-blocking framework CSS, cache lifetimes (server-side concern) and image delivery (on the still-served full-resolution hero). None represent code defects.</div>
+        </figure>
+
+        <h4>5. Cognitive walkthrough, external user testing</h4>
+        <p>Three external testers stepped through the site unguided. Each was given a single open instruction ("look around this site and try one of the sports") and observed without prompting. Their feedback drove three concrete code changes documented in the User Feedback section below. Ethics, verbal consent obtained, right to withdraw stated, no personal data retained, feedback anonymised.</p>
+
+        <h4>6. Dual-backend fallback verification</h4>
+        <p>Because the site supports both Lab 6 (JSON) and Lab 7/8 (PHP+SQLite) backend patterns, both paths were tested independently. With <strong>php -S localhost:8000</strong> running, the console log on every page load read <strong>[Data Loader] Loaded from PHP/SQLite backend</strong> and the Stats page updated live. With the PHP server stopped (site served via VS Code Live Server), the console log switched to <strong>[Data Loader] PHP unavailable, using JSON fallback</strong>, the Stats page showed an "API offline, showing static data" notice, and write operations no-op'd silently rather than throwing. Both modes were verified in Chrome DevTools' Console and Network tabs.</p>
+
+        <h4>7. Cross-platform coverage, honest scoping</h4>
+        <div style="overflow-x:auto;">
+        <table class="ai-record">
+          <thead>
+            <tr><th>Platform</th><th>Tested?</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>macOS Chrome (Blink)</td><td>✓ Yes, primary development environment</td><td>Full feature verification; console and Network panels used throughout</td></tr>
+            <tr><td>macOS Safari (WebKit)</td><td>✓ Yes, secondary verification</td><td>Full scene, bloom, layout and interaction verified; no workarounds needed</td></tr>
+            <tr><td>iOS-class mobile</td><td>✓ Simulated, Chrome DevTools Device Toolbar at 430 × 932 px (iPhone 14 Pro Max)</td><td>Drawer, card stack, responsive type and stat boxes verified; real-device touch not tested</td></tr>
+            <tr><td>iPadOS-class tablet</td><td>✓ Simulated, Chrome DevTools Device Toolbar at 820 × 1180 px (iPad Air viewport)</td><td>Two-column card layout and navbar spacing verified</td></tr>
+            <tr><td>Windows / Linux Chrome</td><td>✗ Not tested</td><td>Expected to match macOS Chrome (same Blink engine); no OS-specific CSS was used</td></tr>
+            <tr><td>Android Chrome</td><td>✗ Not tested</td><td>Three.js WebGL and Bootstrap 5 are Android-compatible by design; real-device touch not verified</td></tr>
+          </tbody>
+        </table>
+        </div>
+
+      </div>
+    </div>
+
+    <!--evidence of testing, screenshots and results-->
+    <div class="col-12" id="evidence">
+      <div class="section-card">
+        <h3>Evidence of Testing</h3>
+        <ul>
+          <li>Chrome Lighthouse on every page; initial mobile scores 74 / 87 / 96 / 82 (Performance / Accessibility / Best Practices / SEO).</li>
+          <li>After four fixes: compressing the hero image, adding a <strong>&lt;main&gt;</strong> landmark, adding meta descriptions, and creating a <strong>robots.txt:</strong> final mobile scores are <strong>88 / 91 / 96 / 100</strong>.</li>
+          <li>Chrome and Safari render the site identically; responsive breakpoints behave as designed; the browser console stays clean of errors after exhaustive control exercise on all four pages.</li>
+        </ul>
+
+        <p class="mt-3">Short demo recording walking through all three sport pages and exercising the animations, camera switches and scene toggles end-to-end:</p>
+        <figure class="shot" style="max-width:900px;margin:10px auto 18px;">
+          <video src="../assets/videos/functional_demo.mp4" controls muted playsinline preload="metadata"
+                 style="width:100%;display:block;background:#0b0e1a;"></video>
+          <div class="cap">Functional &amp; 3D interaction demo, tennis, basketball and football scenes (~1:39).</div>
+        </figure>
+
+        <h4>Console, runtime cleanliness</h4>
+        <p>Every page was loaded with cache disabled and every interactive control on the sport pages was exercised, animation buttons, all four cameras, wireframe / bloom / audio / lighting toggles. The Console tab was observed throughout. All four pages produced an empty console and DevTools' built-in 'No Issues' badge, confirming that Three.js initialisation, GLB loading, AnimationMixer playback, post-processing setup and all UI event handlers execute cleanly under normal use.</p>
+        <figure class="shot" style="max-width:900px;margin:14px 0 18px;">
+          <img src="../assets/images/screenshots/fig20_console_clean.png" alt="Clean DevTools Console on tennis.html showing No Issues after exercising every control">
+          <div class="cap">DevTools Console on tennis.html after exercising every animation, camera and toggle. "No Issues" badge confirmed, zero runtime errors.</div>
+        </figure>
+
+        <h4>Network, AJAX and resource budget</h4>
+        <p>Network panel captures were taken with cache disabled on the Stats page, which directly exercises the PHP/SQLite backend via AJAX. The capture shows <strong>api.php?action=stats</strong> returning 200 OK alongside the static assets (<strong>bootstrap.min.css</strong>, <strong>style.css</strong>, <strong>dataLoader.js</strong>, <strong>sports.ttf</strong> confirmed as the Anton typeface from Google Fonts at 130 kB). Two consecutive <strong>api.php?action=stats</strong> requests are visible, the second fired by the 5-second AJAX polling loop, confirming the dual-backend pattern's primary (PHP/SQLite) path is live.</p>
+        <figure class="shot" style="max-width:900px;margin:14px 0 18px;">
+          <img src="../assets/images/screenshots/fig24_network_stats.png" alt="DevTools Network panel on stats.html showing api.php returning 200 OK and the 5-second poll cycle">
+          <div class="cap">DevTools Network panel on stats.html, <strong>api.php?action=stats</strong> returns 200, dataLoader.js loaded, sports.ttf (Anton) cached at 130 kB. The 5-second AJAX poll cycle is visible as two consecutive api.php requests.</div>
+        </figure>
+
+        <div class="shot-grid cols-2 mt-3">
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig07_lighthouse_mobile_final.png" alt="Final Lighthouse audit on mobile"
+                 data-cap="Final Lighthouse audit on mobile (index.html). Performance 88, Accessibility 91, Best Practices 96, SEO 100.">
+            <div class="cap">Lighthouse final mobile scores, 88 / 91 / 96 / 100.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig14_responsive_mobile.png" alt="Mobile 430x932 layout"
+                 data-cap="Mobile (430 × 932 px). Sport cards stack into a single column.">
+            <div class="cap">Mobile breakpoint, single stacked column.</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig15_responsive_tablet.png" alt="Tablet 820×1180 layout of index.html on iPad Air">
+            <div class="cap">Tablet breakpoint, index.html on iPad Air (820 × 1180).</div>
+          </figure>
+          <figure class="shot">
+            <img src="../assets/images/screenshots/fig16_responsive_desktop.png" alt="Desktop 1920x1080 layout"
+                 data-cap="Desktop (1920 × 1080 px). Three-column row at full desktop width.">
+            <div class="cap">Desktop breakpoint, three-column row.</div>
+          </figure>
+        </div>
+      </div>
+    </div>
+
+    <!--user feedback collected during testing-->
+    <div class="col-12" id="feedback">
+      <div class="section-card">
+        <h3>User Feedback</h3>
+        <p>Three external testers stepped through the site unguided as part of a cognitive walkthrough. Each was given the single instruction 'look around this site and try one of the sports' and observed without prompting. Their feedback drove three concrete changes to the build.</p>
+        <table class="ai-record">
+          <thead>
+            <tr><th>Tester</th><th>Observation</th><th>Action taken</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tester A</td>
+              <td>Said the navbar "Back" button was confusing, wasn't clear whether it meant browser-back or return to the home page</td>
+              <td>Renamed it to <strong>Home</strong> on every page so the destination is unambiguous</td>
+            </tr>
+            <tr>
+              <td>Tester B</td>
+              <td>Reported that the basketball scene was hard to make out, the page background was solid black so dark parts of the model blended into it</td>
+              <td>Changed the basketball scene background to a lighter sky-blue tone so the court, hoop and stanchion are clearly visible against it</td>
+            </tr>
+            <tr>
+              <td>Tester C</td>
+              <td>Suggested adding a goalkeeper to the football pitch and either a ball-return / opposing player on the tennis court, plus some form of scoring target on both</td>
+              <td>Acknowledged as a valid enhancement but <em>out of scope for this submission</em>. Noted as a future iteration. Both scenes are already structured (separate meshes per component, AnimationMixer wired up) so a keeper or target model could be dropped in without re-architecting anything</td>
+            </tr>
+          </tbody>
+        </table>
+        <h4 class="mt-4">Ethics</h4>
+        <ul>
+          <li>Verbal consent was obtained from each participant before the session.</li>
+          <li>Participants were told they could stop at any time without giving a reason.</li>
+          <li>No personal data (name, email, contact details) was retained beyond the session.</li>
+          <li>All feedback in this section is anonymised.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--Statement of originality-->
+    <div class="col-12" id="originality">
+      <div class="section-card">
+        <h3>Statement of Originality</h3>
+        <p>I declare that this submission is my own original work.</p>
+        <ul>
+          <li>All 3D models: tennis court, basketball court and football pitch, were modelled by me in Blender 5.1 from primitives. No third-party meshes were imported.</li>
+          <li>All website code: HTML, CSS, JavaScript (Three.js scene setup, AnimationMixer logic, frame-triggered audio, mobile drawer pattern, surface selector with localStorage persistence, JSON fallback data loader) and PHP (MVC controller, model, SQLite persistence via PDO), was written by me.</li>
+          <li>All design decisions: layout, typography, colour palette, post-processing tuning, camera presets, animation timing, were made by me.</li>
+          <li>All testing was carried out by hand on real hardware in my own browser.</li>
+          <li>Third-party open-source assets are used as published: Three.js r163 (MIT), Bootstrap 5.3 (MIT), Blender 5.1 (GPL), the Anton display font (Google Fonts, SIL OFL), and Creative Commons sound effects from Freesound.org.</li>
+          <li>Where Generative AI (Claude) was used in support of the work, this is disclosed transparently in the Generative AI Usage Record table below.</li>
+          <li>No content from another student, online tutorial walkthrough or commercial template was copied into this submission.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!--Generative AI Usage Record table-->
+    <div class="col-12" id="ai">
+      <div class="section-card">
+        <h3>Generative AI Usage Record</h3>
+        <table class="ai-record">
+          <thead>
+            <tr><th>Use case</th><th>Tool</th><th>Outcome</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Debugging Three.js initialisation</td>
+              <td>Generative AI (Claude)</td>
+              <td>Identified a missing letter in <strong>DirectionalLight</strong> (typed as <strong>DirectionaLight</strong>) that was causing a silent shader compile failure. Fixing the typo restored the lit scene.</td>
+            </tr>
+            <tr>
+              <td>Drafting the testing writeup structure</td>
+              <td>Generative AI (Claude)</td>
+              <td>Used to map Lab 11's testing methodologies onto the evidence I'd collected and to scaffold the testing writeup structure. All testing was performed by hand; only the document structure and prose phrasing were AI-assisted.</td>
+            </tr>
+            <tr>
+              <td>Refactoring this About page</td>
+              <td>Generative AI (Claude)</td>
+              <td>Used to restructure the page against the Lab 10 / assignment-checklist headings. The underlying content was authored by hand.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<!--Lightbox modal that pops up when you click an image-->
+<div id="lightbox" role="dialog" aria-label="Enlarged screenshot" aria-hidden="true">
+  <button class="lb-close" aria-label="Close enlarged image">&times;</button>
+  <img id="lb-img" src="" alt="">
+</div>
+
+<footer class="text-center py-4" style="border-top:1px solid rgba(255,255,255.07);color:#555;font-size:.85rem;">
+  Sports 3D, Web 3D Application Assignment &nbsp;|&nbsp; Three.js + Blender + Bootstrap + PHP/SQLite
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Lightbox (Lab 10 image pop-out)
+(function() {
+  const lb = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lb-img');
+  const lbClose = lb.querySelector('.lb-close');
+  function open(img) { lbImg.src = img.src; lbImg.alt = img.alt || ''; lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function close() { lb.classList.remove('open'); document.body.style.overflow = ''; }
+  document.querySelectorAll('.shot img').forEach(img => img.addEventListener('click', () => open(img)));
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+  lbClose.addEventListener('click', close);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+})();
+</script>
+</body>
+</html>

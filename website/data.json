@@ -1,0 +1,7 @@
+{
+  "status": "ok",
+  "total": 0,
+  "by_sport": { "tennis": 0, "basketball": 0, "football": 0 },
+  "by_type":  { "hit": 0, "juggle": 0, "shoot": 0, "dribble": 0, "swing": 0 },
+  "recent": []
+}

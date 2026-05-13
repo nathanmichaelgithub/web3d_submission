@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Live Stats — Sports 3D</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Live interaction statistics for Sports 3D — real-time counts of tennis, basketball and football actions tracked via PHP and SQLite.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style_button.css">
+  <style>
+    table.ai-record { border-collapse: collapse; width: 100%; }
+    table.ai-record th, table.ai-record td {
+      border: 2px solid rgba(126,238,255,.25);
+      padding: 10px; text-align: left; color: #ccc; font-size: .9rem;
+    }
+    table.ai-record th {
+      background: rgba(126,238,255,.08); color: #7ef;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: .8rem;
+    }
+    .ajax-status { color: #888; font-size: .8rem; font-weight: 400; margin-left: 8px; }
+    @media (max-width: 576px) {
+      .ajax-status { display: block; margin-left: 0; margin-top: 4px; }
+      table.ai-record th, table.ai-record td { font-size: .78rem; padding: 7px 6px; }
+      ol, ul { padding-left: 1.1rem; }
+      code { word-break: break-all; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark" style="background:rgba(0,0,0,.7);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);">
+  <div class="container d-flex justify-content-between align-items-center">
+    <a class="navbar-brand" href="../index.html">&#8592; SPORTS 3D</a>
+    <span class="text-muted" style="font-size:.85rem;">Live Stats</span>
+  </div>
+</nav>
+
+<main>
+<div class="container py-5">
+  <div class="row g-4">
+
+    <!--summary boxes showing interaction counts per sport-->
+    <div class="col-12">
+      <div class="section-card">
+        <h3>&#128202; Live Activity Stats <small class="ajax-status" id="ajax-status">loading via AJAX…</small></h3>
+        <p style="color:#aaa;font-size:.9rem;">Every button press on the sport pages is recorded to the SQLite database via <code>api.php</code>. This page polls the API every 5 seconds and updates automatically.</p>
+        <div class="row g-3 mt-1" id="stat-boxes">
+          <div class="col-6 col-md-3"><div class="stat-box"><div class="val" id="s-tennis">—</div><div class="lbl">Tennis Actions</div></div></div>
+          <div class="col-6 col-md-3"><div class="stat-box"><div class="val" id="s-basketball">—</div><div class="lbl">Basketball Actions</div></div></div>
+          <div class="col-6 col-md-3"><div class="stat-box"><div class="val" id="s-football">—</div><div class="lbl">Football Actions</div></div></div>
+          <div class="col-6 col-md-3"><div class="stat-box"><div class="val" id="s-total">—</div><div class="lbl">Total Interactions</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!--recent interactions table, populated from the AJAX response-->
+    <div class="col-12">
+      <div class="section-card">
+        <h3>Recent Interactions</h3>
+        <div id="fallback-notice" style="display:none;background:rgba(255,160,0,.1);border:1px solid rgba(255,160,0,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;color:#ffa040;font-size:.85rem;">
+          &#9888; PHP backend unavailable — showing static data from <code>data.json</code>. Deploy to a PHP server to see live counts.
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="ai-record" id="score-table">
+            <thead><tr><th>#</th><th>Sport</th><th>Action</th><th>Time</th></tr></thead>
+            <tbody id="score-tbody"><tr><td colspan="4" style="color:#555;font-style:italic;">Fetching records…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!--MVC explanation section, shows how the app is layered-->
+    <div class="col-12">
+      <div class="section-card">
+        <h3>&#128279; How the Stats Pipeline Works</h3>
+        <p style="color:#aaa;font-size:.9rem;margin-bottom:20px;">The backend follows a three-layer MVC pattern. Every interaction recorded on the sport pages passes through all three layers before appearing here.</p>
+
+        <!-- Write path -->
+        <h4 style="color:#7ef;font-size:.95rem;margin-bottom:10px;">&#9654; Write path: recording an interaction</h4>
+        <ol style="color:#ccc;font-size:.88rem;line-height:1.9;padding-left:1.4rem;margin-bottom:20px;">
+          <li>A user presses a button (e.g. <strong>Shoot</strong> on basketball.html). The sport page calls <strong>fetch('../api.php', { method: 'POST', body: JSON.stringify({ sport: 'basketball', type: 'shoot' }) })</strong>.</li>
+          <li><strong>api.php</strong> (the thin entry point) receives the POST, reads the JSON body, and calls <strong>$controller-&gt;apiInsertData($sport, $type)</strong>.</li>
+          <li><strong>Controller</strong> (<strong>application/controller/controller.php</strong>) validates <strong>sport</strong> against an allowlist <strong>['tennis', 'basketball', 'football']</strong> and <strong>type</strong> against <strong>['hit', 'juggle', 'shoot', 'dribble', 'swing']</strong>. Invalid values are rejected with a 400 response, no raw input ever reaches the database.</li>
+          <li><strong>Model</strong> (<strong>application/model/model.php</strong>) runs a PDO prepared statement: <strong>INSERT INTO interactions (sport, type) VALUES (:sport, :type)</strong>. The row gets an auto-incremented <strong>id</strong> and a <strong>created_at</strong> timestamp from SQLite.</li>
+          <li><strong>api.php</strong> returns <strong>{"status":"ok","id":N}</strong> to the sport page. The sport page ignores the response (fire-and-forget).</li>
+        </ol>
+
+        <!-- Read path -->
+        <h4 style="color:#ffa040;font-size:.95rem;margin-bottom:10px;">&#9654; Read path: loading this page</h4>
+        <ol style="color:#ccc;font-size:.88rem;line-height:1.9;padding-left:1.4rem;margin-bottom:20px;">
+          <li>On load (and every 5 seconds), stats.html calls <strong>fetch('../api.php?action=stats')</strong>.</li>
+          <li><strong>api.php</strong> sees <strong>action=stats</strong> and calls <strong>$controller-&gt;apiGetStats()</strong>.</li>
+          <li><strong>Controller</strong> delegates directly to <strong>$model-&gt;dbGetStats()</strong>: no validation needed for a read.</li>
+          <li><strong>Model</strong> runs three SQL queries: a <strong>COUNT(*)</strong> for the total, a <strong>GROUP BY sport</strong> for per-sport counts, and <strong>ORDER BY id DESC LIMIT 20</strong> for the recent-interactions list. All results are returned as a plain PHP array.</li>
+          <li><strong>api.php</strong> JSON-encodes the array and sends it back. stats.html updates the four stat boxes and the recent interactions table directly in the DOM, no page reload required.</li>
+        </ol>
+
+        <!-- Layer summary -->
+        <h4 style="color:#ffffff;font-weight:bold;font-size:.95rem;margin-bottom:10px;">&#9654; Layer responsibilities</h4>
+        <div style="overflow-x:auto;">
+        <table class="ai-record">
+          <thead>
+            <tr><th>Layer</th><th>File</th><th>Responsibility</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Router</strong></td>
+              <td><strong>api.php</strong></td>
+              <td>Reads HTTP method + <strong>action</strong> query param, routes to the correct controller method, sets response headers, JSON-encodes the return value. No business logic.</td>
+            </tr>
+            <tr>
+              <td><strong>Controller</strong></td>
+              <td><strong>application/controller/controller.php</strong></td>
+              <td>Input validation via strict allowlists (prevents SQL injection at the application level on top of prepared statements). Calls the Model and returns plain arrays, it never touches HTTP or SQL directly.</td>
+            </tr>
+            <tr>
+              <td><strong>Model</strong></td>
+              <td><strong>application/model/model.php</strong></td>
+              <td>All PDO/SQLite access lives here. Uses <strong>PDO::ATTR_ERRMODE_EXCEPTION</strong> for error propagation and <strong>bindParam</strong> prepared statements for every write. No business logic, pure data access.</td>
+            </tr>
+            <tr>
+              <td><strong>View</strong></td>
+              <td><strong>pages/stats.html</strong></td>
+              <td>Fetches JSON from the API via AJAX, updates the DOM. Polling is paused via the Page Visibility API when the tab is hidden and resumed on focus, avoids unnecessary requests in the background.</td>
+            </tr>
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<footer class="text-center py-4" style="border-top:1px solid rgba(255,255,255,.07);color:#555;font-size:.85rem;">
+  Sports 3D — Web 3D Application Assignment &nbsp;|&nbsp; Three.js + Blender + Bootstrap + PHP/SQLite
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/dataLoader.js"></script>
+<script>
+//Polls the stats API every 5s and updates the DOM. Pauses when the tab is hidden.
+let pollTimer = null;
+
+async function fetchStats() {
+  const data = await window.SportsAPI.loadStats();
+  const notice = document.getElementById('fallback-notice');
+  if (window.SportsAPI.isFallback()) {
+    notice.style.display = 'block';
+    document.getElementById('ajax-status').textContent = 'API offline — showing static data';
+  } else {
+    notice.style.display = 'none';
+    document.getElementById('ajax-status').textContent = 'live via AJAX · refreshes every 5 s ✓';
+  }
+
+  document.getElementById('s-tennis').textContent     = data.by_sport?.tennis     || 0;
+  document.getElementById('s-basketball').textContent = data.by_sport?.basketball || 0;
+  document.getElementById('s-football').textContent   = data.by_sport?.football   || 0;
+  document.getElementById('s-total').textContent      = data.total || 0;
+
+  const tbody = document.getElementById('score-tbody');
+  if (data.recent && data.recent.length) {
+    tbody.innerHTML = data.recent.map((r, i) =>
+      `<tr><td>${i + 1}</td><td>${r.sport}</td><td>${r.type}</td><td>${r.created_at || '—'}</td></tr>`
+    ).join('');
+  } else {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:#555;font-style:italic;">No interactions recorded yet — play the games!</td></tr>';
+  }
+}
+
+fetchStats();
+pollTimer = setInterval(fetchStats, 5000); //refresh every 5 seconds
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { clearInterval(pollTimer); } //stop polling when tab is hidden, saves requests
+  else { fetchStats(); pollTimer = setInterval(fetchStats, 5000); }
+});
+</script>
+</body>
+</html>

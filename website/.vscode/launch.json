@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch with PHP server (localhost:8080)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "php",
+      "runtimeArgs": ["-S", "localhost:8080", "-t", "${workspaceFolder}"],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": null,
+      "serverReadyAction": {
+        "pattern": "Development Server",
+        "uriFormat": "http://localhost:8080",
+        "action": "openExternally"
+      }
+    },
+    {
+      "name": "Open index.html in browser (Live Server)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5500/index.html",
+      "webRoot": "${workspaceFolder}",
+      "runtimeArgs": ["--disable-web-security", "--allow-file-access-from-files"]
+    }
+  ]
+}

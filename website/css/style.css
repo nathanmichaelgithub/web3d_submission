@@ -1,0 +1,355 @@
+/* CSS Rules for Nathan's Sports 3D, shared styles used across every page.
+   Note these rules are laid out mobile first, smaller screen rules come first
+   and propagate up to larger screens unless overridden by a media query.
+*/
+
+/* Method to declare my own custom font, used on big titles and sport names */
+@font-face {
+  font-family: SportsFont;
+  src: url('../assets/fonts/sports.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Body defaults, dark background and grey text everywhere */
+body {
+  background: #0b0e1a;
+  color: #ddd;
+  font-family: Arial, sans-serif;
+}
+
+/* style for the 3D canvas, fixed full-screen behind everything else */
+canvas {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* NAVBAR (sport pages) */
+#navbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(10px);  /* Adds the frosted-glass effect */
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; gap: 14px; padding: 10px 18px;
+}
+#navbar a {
+  color: #fff; text-decoration: none; padding: 7px 16px;
+  border-radius: 7px; font-size: 14px; font-family: Arial, sans-serif;
+  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(0,0,0,0.4);
+  transition: background .2s;
+}
+#navbar a:hover { background: rgba(255,255,255,0.15); }
+#nav-title {
+  color: #fff; font-size: 22px; font-weight: 900;
+  letter-spacing: 5px; flex: 1;
+  font-family: SportsFont, "Arial Black", Arial, sans-serif;
+}
+#status-badge {
+  font-size: 12px; font-family: Arial, sans-serif;
+  border-radius: 20px; padding: 4px 12px;
+}
+
+/* style for the side panel that holds all the controls */
+#side-panel {
+  position: fixed; right: 0; top: 57px; bottom: 0; width: 268px; z-index: 100;
+  background: rgba(8,10,22,0.85);
+  backdrop-filter: blur(12px);
+  border-left: 1px solid rgba(255,255,255,0.10);
+  overflow-y: auto; padding: 14px 12px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.ps {
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px; padding: 12px;
+  border: 1px solid rgba(255,255,255,0.09);
+}
+.ps-title {
+  color: #888; font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; margin-bottom: 9px;
+  font-family: Arial, sans-serif;
+}
+.desc { color: #aaa; font-size: 11.5px; line-height: 1.65; font-family: Arial, sans-serif; }
+.desc strong { color: #ddd; }
+
+/* style for the small info row at the bottom of the side panel */
+#score-row {
+  text-align: center; color: #aaa; font-size: 12px;
+  font-family: Arial, sans-serif;
+  background: rgba(255,255,255,0.04);
+  border-radius: 8px; padding: 8px;
+}
+
+/* Drawer bits, hidden by default on desktop and shown by the mobile media query below */
+#drawer-toggle   { display: none; }
+#drawer-backdrop { display: none; }
+#drawer-close    { display: none; }
+body.scroll-locked { overflow: hidden; }
+
+/* Mobile breakpoint, side panel turns into a slide-in drawer */
+@media (max-width: 700px) {
+  /* Side panel slides in from the right when toggled */
+  #side-panel {
+    display: flex !important;
+    top: 0;
+    width: min(85vw, 340px);
+    transform: translateX(100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 400;
+    pointer-events: none;
+  }
+  #side-panel.drawer-open {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  /* dark backdrop behind the open drawer */
+  #drawer-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 390;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s;
+  }
+  #drawer-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Floating Controls button bottom right that opens the drawer */
+  #drawer-toggle {
+    display: block;
+    position: fixed;
+    bottom: 24px;
+    right: 16px;
+    z-index: 380;
+    background: rgba(8, 10, 22, 0.90);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
+    padding: 11px 18px;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    transition: background 0.2s;
+  }
+  #drawer-toggle:hover { background: rgba(255, 255, 255, 0.12); }
+
+  /* Close (×) button row injected as the first child of the panel */
+  #drawer-close {
+    display: flex;
+    justify-content: flex-end;
+    flex-shrink: 0;
+    padding-bottom: 10px;
+    margin-bottom: 2px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  }
+  #drawer-close button {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    color: #aaa;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 7px;
+    transition: background 0.2s, color 0.2s;
+  }
+  #drawer-close button:hover { background: rgba(255, 255, 255, 0.10); color: #fff; }
+
+}
+
+/* Landing and About page styles below */
+
+/* style for shared section cards used on the About and Stats pages */
+.section-card {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px; padding: 28px; margin-bottom: 24px;
+}
+.section-card h3 { color: #7ef; font-weight: 700; margin-bottom: 14px; }
+.section-card p, .section-card li { color: #ccc; line-height: 1.75; }
+
+/* Inline code styling for the About page */
+code {
+  color: #ffffff; background: none;
+  padding: 0; border-radius: 0; font-size: inherit;
+  font-weight: bold; font-family: inherit;
+}
+
+/* Coloured pill tags used on the About page to mark tech and features */
+.pill-tag {
+  display: inline-block; background: rgba(100,200,255,.12); color: #7ef;
+  border: 1px solid rgba(100,200,255,.3); border-radius: 20px;
+  padding: 3px 12px; font-size: .8rem; margin: 3px;
+}
+.pill-tag.green  { background: rgba(60,220,60,.12);  color: #4ef04e; border-color: rgba(60,220,60,.3); }
+.pill-tag.orange { background: rgba(255,136,0,.12);  color: #ffa040; border-color: rgba(255,136,0,.3); }
+.pill-tag.yellow { background: rgba(204,255,0,.12);  color: #ccff00; border-color: rgba(204,255,0,.3); }
+
+/* numbered step circles on the About page production workflow */
+.step-num {
+  display: inline-block; width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(100,200,255,.18); color: #7ef; text-align: center;
+  line-height: 32px; font-weight: 900; margin-right: 10px; font-size: .85rem;
+}
+
+/* Big stat boxes used on the live stats page */
+.stat-box {
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 16px; text-align: center;
+}
+.stat-box .val { font-size: 2rem; font-weight: 900; color: #7ef; }
+.stat-box .lbl { font-size: .8rem; color: #888; margin-top: 4px; }
+
+/* style for the score table on the stats page */
+#score-table { width: 100%; border-collapse: collapse; }
+#score-table th {
+  color: #aaa; font-size: .8rem; text-transform: uppercase;
+  letter-spacing: 2px; padding: 8px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+#score-table td {
+  padding: 8px 12px; color: #ccc;
+  border-bottom: 1px solid rgba(255,255,255,.05); font-size: .9rem;
+}
+#score-table tbody tr:hover { background: rgba(255,255,255,.03); }
+.ajax-status { font-size: .8rem; color: #888; font-style: italic; }
+
+/* Top nav for the landing page */
+.top-nav {
+  position: relative; z-index: 10;
+  background: rgba(0,0,0,.5); backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 12px 0;
+}
+.top-nav .nav-brand {
+  color: #fff; font-weight: 900; letter-spacing: 3px; font-size: 1.1rem;
+  text-decoration: none;
+  font-family: SportsFont, "Arial Black", Arial, sans-serif;
+}
+.top-nav .nav-link { color: rgba(255,255,255,.65) !important; font-size: .9rem; }
+.top-nav .nav-link:hover { color: #fff !important; }
+
+/* Hero section on the landing page, big SPORTS 3D banner */
+.hero-section { padding: 80px 0 50px; text-align: center; }
+.hero-title {
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  font-weight: 900; letter-spacing: 8px; color: #fff;
+  text-shadow: 0 4px 30px rgba(0,0,0,.8);
+  font-family: SportsFont, "Arial Black", Arial, sans-serif;
+}
+.hero-sub {
+  color: rgba(255,255,255,.65); font-size: 1.1rem;
+  letter-spacing: 3px; text-transform: uppercase; margin-top: 10px;
+}
+
+/* small grey pill tags inside the landing page sport cards */
+.feature-pill {
+  display: inline-block; font-size: .72rem; padding: 3px 10px;
+  border-radius: 20px; margin: 3px;
+  background: rgba(255,255,255,.08); color: rgba(255,255,255,.6);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+/* style for the three sport cards on the landing page */
+.sport-card {
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 18px; padding: 32px 24px; text-align: center;
+  transition: transform .25s, background .25s, border-color .25s;
+  backdrop-filter: blur(8px); height: 100%;
+}
+.sport-card:hover {
+  transform: translateY(-6px);  /* lift the card slightly on hover */
+  background: rgba(255,255,255,.11); border-color: rgba(255,255,255,.25);
+}
+.sport-icon { font-size: 3.5rem; margin-bottom: 14px; display: block; }
+.sport-card h3 {
+  color: #fff; font-weight: 900; letter-spacing: 4px; font-size: 1.2rem; margin-bottom: 10px;
+  font-family: SportsFont, "Arial Black", Arial, sans-serif;
+}
+.sport-card p { color: rgba(255,255,255,.55); font-size: .88rem; margin-bottom: 20px; line-height: 1.6; }
+
+/* About strip used on the landing page below the cards */
+.about-strip {
+  background: rgba(255,255,255,.04);
+  border-top: 1px solid rgba(255,255,255,.08);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 40px 0; margin-top: 20px;
+}
+.about-strip h4 { color: #fff; font-weight: 700; }
+.about-strip p  { color: rgba(255,255,255,.5); }
+
+/* Shared hero header on the About page */
+.hero {
+  background: linear-gradient(135deg,#0d1b2a 0%,#1a2a4a 50%,#0d1b2a 100%);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 60px 0 40px;
+}
+.hero h1 {
+  font-size: 3rem; font-weight: 900; letter-spacing: 6px; color: #fff;
+  font-family: SportsFont, "Arial Black", Arial, sans-serif;
+}
+.hero p { color: #aaa; font-size: 1.1rem; }
+
+/* Shared footer styling */
+footer {
+  border-top: 1px solid rgba(255,255,255,.07);
+  color: #555; font-size: .85rem;
+}
+
+/* Contact form inputs on the About page */
+.contact-input {
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+  color: #ddd !important;
+  border-radius: 7px !important;
+}
+.contact-input::placeholder { color: #666 !important; }
+.contact-input:focus {
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(100,200,255,.4) !important;
+  box-shadow: 0 0 0 3px rgba(100,200,255,.1) !important;
+  color: #fff !important;
+}
+
+/* Responsive hero image */
+.hero-img {
+  width: 100%; max-height: 60vh; object-fit: cover; opacity: .6;
+  display: block;
+}
+
+/* Navbar brand used on the About and Models pages */
+.navbar-brand {
+  font-weight: 900; letter-spacing: 4px; color: #fff !important;
+  font-family: SportsFont, "Arial Black", Arial, sans-serif;
+}
+
+/* global safety nets to stop horizontal scroll on small screens */
+body { overflow-x: hidden; }
+img  { max-width: 100%; height: auto; }
+
+/* Responsive hero heading on the About page, uses clamp for fluid sizing */
+.hero h1 {
+  font-size: clamp(1.6rem, 7vw, 3rem);
+  letter-spacing: clamp(2px, 1.5vw, 6px);
+}
+
+@media (max-width: 576px) {
+  /* Landing page hero title shrinks the letter-spacing on tiny screens */
+  .hero-title { letter-spacing: clamp(2px, 4vw, 8px); }
+  /* tighten card padding on small screens to save space */
+  .section-card { padding: 16px; }
+  /* About strip button goes full-width on mobile */
+  .about-strip .btn-sport { display: block; text-align: center; }
+}

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Basketball — Sports 3D</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive 3D basketball court — shoot a perfect arc into the hoop or dribble on an indoor NBA-style hardwood court with arena lighting.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style_button.css">
+  <style>
+    body { overflow: hidden; background: #000; }
+    #status-badge { background: rgba(255,136,0,0.18); color: #ffa040; border: 1px solid rgba(255,136,0,0.4); }
+
+    /* style for the shoot and dribble buttons */
+    .anim-btn {
+      display: block; width: 100%; padding: 9px 12px; margin-bottom: 6px;
+      border-radius: 7px; border: 1px solid rgba(255,140,0,0.3);
+      background: rgba(255,140,0,0.08); color: #ccc;
+      cursor: pointer; font-size: 0.82rem; text-align: left;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .anim-btn:hover { background: rgba(255,140,0,0.18); color: #fff; }
+    .anim-btn.playing {
+      background: rgba(255,140,0,0.24); border-color: rgba(255,140,0,0.65); color: #ffa040;
+    }
+    .anim-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+<main>
+<canvas id="c"></canvas>
+<noscript>
+  <div style="position:fixed;inset:0;z-index:99999;background:#0d0d18;color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:sans-serif;text-align:center;padding:20px;">
+    <h2>JavaScript Required</h2>
+    <p>This 3D basketball experience requires JavaScript. Please enable it in your browser settings.</p>
+    <a href="../index.html" style="color:#7ef;margin-top:12px;">&#8592; Return to Home</a>
+  </div>
+</noscript>
+
+
+
+<div id="navbar">
+  <a href="../index.html" aria-label="Go to home page">&#8592; Home</a>
+  <span id="nav-title">BASKETBALL</span>
+  <span id="status-badge">3D Live</span>
+</div>
+
+<div id="side-panel">
+  <div class="ps">
+    <div class="ps-title">&#127936; Animations</div>
+    <button class="anim-btn" id="shootBtn">&#9654; Shoot</button>
+    <button class="anim-btn" id="dribbleBtn">&#9654; Dribble</button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#127953; Surface</div>
+    <button class="surf-btn active" id="woodBtn" onclick="setSurface('wood')">Wood</button>
+    <button class="surf-btn" id="concreteBtn" onclick="setSurface('concrete')">Concrete</button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#128247; Camera Views</div>
+    <button class="cam-btn active" data-cam="0">Default — Behind 3pt Line</button>
+    <button class="cam-btn" data-cam="1">Side Court View</button>
+    <button class="cam-btn" data-cam="2">Overhead — Bird's Eye</button>
+    <button class="cam-btn" data-cam="3">Under Basket — Low Angle</button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#9881; Scene Controls</div>
+    <button class="tog" id="lightToggle">Arena Lights <span class="pill pill-on">ON</span></button>
+    <button class="tog" id="wireToggle">Wireframe <span class="pill pill-off">OFF</span></button>
+    <button class="tog" id="bloomToggle">Bloom Post-FX <span class="pill pill-on">ON</span></button>
+    <button class="tog" id="audioToggle">Audio <span class="pill pill-off">OFF</span></button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#127936; Scene Objects</div>
+    <div class="desc">
+      <strong>Court</strong> — NBA-style half-court, 28 × 15 m. Court geometry, markings, hoop assembly and ball all loaded from the Blender model. The floor uses a solid hardwood-tone material rather than a wood-grain texture map.<br><br>
+      <strong>Hoop Assembly</strong> — Backboard, shooter square, rim, and net panels loaded from the Blender model.<br><br>
+      <strong>Ball</strong> — Animated by the Blender <code>Basketball_Dribble</code> and <code>Basketball_Shot</code> clips via Three.js AnimationMixer.
+    </div>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#128736; Render Pipeline</div>
+    <div class="desc">
+      EffectComposer → RenderPass → <strong>UnrealBloomPass</strong> (strength 0.5) → OutputPass. 6 PointLights simulate overhead arena rig.
+    </div>
+  </div>
+</div>
+
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/dataLoader.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
+console.log('[Basketball] Loaded — interaction tracking via SportsAPI (dataLoader.js)');
+import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass }from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass }     from 'three/addons/postprocessing/OutputPass.js';
+
+// Renderer setup, antialiased with capped pixel ratio so it doesnt tank performance on retina screens
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+// Setting up the scene with a sky blue background and a bit of fog for depth
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 40, 100);
+
+// Camera presets, Z-up world since the NBA court is ~28x15 m with the rim at Z=3.05
+const CAMS = [
+  { pos: [-22, 0, 9],   tgt: [13.35, 0, 3.05] },  // Behind 3pt Line
+  { pos: [0, -16, 6],   tgt: [0, 0, 1] },           // Side Court View
+  { pos: [0, 0, 32],    tgt: [0, 0, 0] },            // Overhead — Bird's Eye
+  { pos: [12.8, -5, 3], tgt: [13.35, 0, 3.05] },    // Under Basket — Low Angle
+];
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 120);
+camera.up.set(0, 0, 1); //Tells Three.js the world is Z-up
+camera.position.set(...CAMS[0].pos);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 4;
+controls.maxDistance = 70;
+controls.maxPolarAngle = Math.PI / 1.95;
+controls.target.set(...CAMS[0].tgt);
+controls.update();
+
+// Post-processing pipeline, adds the bloom glow on top of the normal render pass
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.50, 0.80, 0.80);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
+// Lighting setup, dim ambient plus 6 point lights to fake the overhead arena rig
+const ambient = new THREE.AmbientLight(0x221a10, 0.4);
+scene.add(ambient);
+const rigLights = [];
+[[-9,-4],[0,-4],[9,-4],[-9,4],[0,4],[9,4]].forEach(([x,y], i) => {
+  const pl = new THREE.PointLight(0xfff3cc, 65, 24);
+  pl.position.set(x, y, 9.2);
+  pl.castShadow = (i === 1 || i === 4); //only 2 lights cast shadows so the GPU doesnt cry
+  if (pl.castShadow) pl.shadow.mapSize.set(1024, 1024);
+  pl.shadow.bias = -0.0005;
+  pl.shadow.normalBias = 0.05;
+  scene.add(pl);
+  rigLights.push(pl);
+});
+
+// Animation state, mixer holds all the Blender clips and clock tracks frame delta
+const clock = new THREE.Clock();
+let mixer = null;
+const clips = {};
+
+// Surface swap, lets the user flip between wood and concrete floor meshes
+let floorWood = null, floorConcrete = null;
+
+window.setSurface = (which) => {
+  if (!floorWood || !floorConcrete) return;
+  const useWood = (which === 'wood');
+  floorWood.visible     =  useWood;
+  floorConcrete.visible = !useWood;
+  localStorage.setItem('bball.surface', useWood ? 'wood' : 'concrete'); //remembers the choice across reloads
+  document.getElementById('woodBtn')    ?.classList.toggle('active',  useWood);
+  document.getElementById('concreteBtn')?.classList.toggle('active', !useWood);
+};
+
+// Load the basketball court GLB
+const allMats = []; //collects every material so the wireframe toggle can flip them all
+
+// Frame-triggered audio, plays the swish sound when the shot animation hits frame 46
+const sounds = {};
+function loadSound(name, file) {
+  const a = new Audio(`../assets/audio/${file}`);
+  a.preload = 'auto';
+  sounds[name] = a;
+}
+loadSound('swish', 'basketball-swish_OMsr9CN.mp3');
+
+const FPS = 30;
+const triggers = [
+  { clip: 'Basketball_Shot', frame: 46, sound: 'swish', vol: 0.9 },
+];
+const played = new Set();
+
+function checkTriggers() {
+  triggers.forEach(t => {
+    const action = clips[t.clip];
+    if (!action || !action.isRunning()) return;
+    const key = `${t.clip}:${t.frame}`;
+    if (action.time * FPS >= t.frame && !played.has(key)) {
+      const s = sounds[t.sound];
+      if (s) { s.volume = t.vol; s.currentTime = 0; s.play().catch(() => {}); }
+      played.add(key);
+    }
+  });
+}
+
+new GLTFLoader().load('../assets/models/basketball_court.glb', gltf => {
+  const model = gltf.scene;
+  model.rotation.x = Math.PI / 2;
+
+  const NO_SHADOW_CAST = new Set([
+    'Pole','Arm','ArmLower','ArmStrut',
+    'Backboard','BackboardFrB','BackboardFrL','BackboardFrR','BackboardFrT',
+    'Rim','Square1','Square2','Square3','Square4'
+  ]);
+  model.traverse(o => {
+    if (!o.isMesh) return;
+    o.castShadow    = !NO_SHADOW_CAST.has(o.name);
+    o.receiveShadow = true;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    mats.forEach(m => allMats.push(m));
+  });
+
+  scene.add(model);
+
+  model.traverse(o => {
+    if (o.name === 'Floor_Wood')     floorWood = o;
+    if (o.name === 'Floor_Concrete') floorConcrete = o;
+  });
+  if (!floorWood || !floorConcrete) {
+    console.warn('Surface meshes not found in GLB:', { floorWood, floorConcrete });
+  } else {
+    setSurface(localStorage.getItem('bball.surface') || 'wood');
+  }
+
+  // Setup AnimationMixer with all Blender clips
+  if (gltf.animations.length > 0) {
+    mixer = new THREE.AnimationMixer(model);
+    gltf.animations.forEach(clip => {
+      clips[clip.name] = mixer.clipAction(clip);
+    });
+
+    // Dribble loops; shot plays once
+    if (clips['Basketball_Dribble']) {
+      clips['Basketball_Dribble'].setLoop(THREE.LoopRepeat);
+    }
+    if (clips['Basketball_Shot']) {
+      clips['Basketball_Shot'].setLoop(THREE.LoopOnce, 1);
+      clips['Basketball_Shot'].clampWhenFinished = true;
+    }
+
+    mixer.addEventListener('finished', e => {
+      if (e.action === clips['Basketball_Shot']) {
+        document.getElementById('shootBtn').disabled = false;
+        document.getElementById('shootBtn').classList.remove('playing');
+        document.getElementById('shootBtn').textContent = '▶ Shoot';
+        played.clear();
+      }
+    });
+    mixer.addEventListener('loop', e => {
+      if (e.action === clips['Basketball_Dribble']) played.clear();
+    });
+  }
+});
+
+// Animation buttons, shoot plays once and dribble loops until you press it again
+let dribbling = false;
+
+document.getElementById('shootBtn').addEventListener('click', () => {
+  const action = clips['Basketball_Shot'];
+  if (!action) return;
+  action.reset().play();
+  document.getElementById('shootBtn').disabled = true;
+  document.getElementById('shootBtn').classList.add('playing');
+  document.getElementById('shootBtn').textContent = '⏳ Shoot';
+  played.clear();
+  window.SportsAPI.recordInteraction('basketball', 'shoot'); //logs the interaction to the database
+});
+
+document.getElementById('dribbleBtn').addEventListener('click', () => {
+  const action = clips['Basketball_Dribble'];
+  if (!action) return;
+  if (dribbling) {
+    action.fadeOut(0.3); //fades out smoothly instead of cutting off
+    dribbling = false;
+    document.getElementById('dribbleBtn').textContent = '▶ Dribble';
+    document.getElementById('dribbleBtn').classList.remove('playing');
+  } else {
+    action.reset().fadeIn(0.3).play();
+    dribbling = true;
+    document.getElementById('dribbleBtn').textContent = '⏹ Dribble';
+    document.getElementById('dribbleBtn').classList.add('playing');
+    played.clear();
+    window.SportsAPI.recordInteraction('basketball', 'dribble');
+  }
+});
+
+// Camera preset buttons, snap to the chosen position and target then update OrbitControls
+document.querySelectorAll('.cam-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const c = CAMS[+btn.dataset.cam];
+    camera.position.set(...c.pos);
+    controls.target.set(...c.tgt);
+    controls.update();
+  });
+});
+
+// Scene control toggles, lights / wireframe / bloom switches in the side panel
+let lightsOn = true;
+document.getElementById('lightToggle').addEventListener('click', () => {
+  lightsOn = !lightsOn;
+  ambient.intensity = lightsOn ? 0.4 : 0.02;
+  rigLights.forEach(l => l.intensity = lightsOn ? 65 : 0);
+  scene.background = new THREE.Color(lightsOn ? 0x87ceeb : 0x050510);
+  const b = document.getElementById('lightToggle');
+  b.innerHTML = `Arena Lights <span class="pill ${lightsOn ? 'pill-on' : 'pill-off'}">${lightsOn ? 'ON' : 'OFF'}</span>`;
+});
+
+let wireframe = false;
+document.getElementById('wireToggle').addEventListener('click', () => {
+  wireframe = !wireframe;
+  allMats.forEach(m => { m.wireframe = wireframe; });
+  const b = document.getElementById('wireToggle');
+  b.innerHTML = `Wireframe <span class="pill ${wireframe ? 'pill-on' : 'pill-off'}">${wireframe ? 'ON' : 'OFF'}</span>`;
+});
+
+document.getElementById('bloomToggle').addEventListener('click', () => {
+  const on = bloomPass.strength > 0.1;
+  bloomPass.strength = on ? 0 : 0.50;
+  const b = document.getElementById('bloomToggle');
+  b.innerHTML = `Bloom Post-FX <span class="pill ${!on ? 'pill-on' : 'pill-off'}">${!on ? 'ON' : 'OFF'}</span>`;
+});
+
+// main animation loop, runs every frame
+(function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  controls.update();
+  if (mixer) {
+    mixer.update(dt);
+    if (audioEnabled) checkTriggers(); //only check audio triggers if audio is enabled
+  }
+  composer.render();
+})();
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+});
+
+// Audio is off by default so the page doesnt blast sounds on first load
+let audioEnabled = false;
+
+function toggleAudio() {
+  audioEnabled = !audioEnabled;
+  const b = document.getElementById('audioToggle');
+  b.innerHTML = `Audio <span class="pill ${audioEnabled ? 'pill-on' : 'pill-off'}">${audioEnabled ? 'ON' : 'OFF'}</span>`;
+}
+
+document.getElementById('audioToggle').addEventListener('click', toggleAudio);
+</script>
+<script src="../js/drawer.js"></script>
+</body>
+</html>

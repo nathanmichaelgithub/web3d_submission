@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Tennis — Sports 3D</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive 3D tennis court — hit and swing on an ITF-standard hard court with full-sized racket and animated ball physics. Built with Three.js and Blender.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style_button.css">
+  <style>
+    body { overflow: hidden; background: #000; }
+    #status-badge { background: rgba(204,255,0,0.18); color: #ccff00; border: 1px solid rgba(204,255,0,0.4); }
+
+    /* style for the Hit Ball / Swing Racket animation buttons */
+    .anim-btn {
+      display: block; width: 100%; padding: 9px 12px; margin-bottom: 6px;
+      border-radius: 7px; border: 1px solid rgba(100,220,255,0.3);
+      background: rgba(100,220,255,0.07); color: #ccc;
+      cursor: pointer; font-size: 0.82rem; text-align: left;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .anim-btn:hover { background: rgba(100,220,255,0.16); color: #fff; }
+    .anim-btn.playing {
+      background: rgba(100,220,255,0.22); border-color: rgba(100,220,255,0.65); color: #7ef;
+    }
+    .anim-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+<main>
+<canvas id="c"></canvas>
+<noscript>
+  <div style="position:fixed;inset:0;z-index:99999;background:#0d0d18;color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:sans-serif;text-align:center;padding:20px;">
+    <h2>JavaScript Required</h2>
+    <p>This 3D tennis experience requires JavaScript. Please enable it in your browser settings.</p>
+    <a href="../index.html" style="color:#7ef;margin-top:12px;">&#8592; Return to Home</a>
+  </div>
+</noscript>
+
+
+
+<div id="navbar">
+  <a href="../index.html" aria-label="Go to home page">&#8592; Home</a>
+  <span id="nav-title">TENNIS</span>
+  <span id="status-badge">3D Live</span>
+</div>
+
+<div id="side-panel">
+  <div class="ps">
+    <div class="ps-title">&#127934; Animations</div>
+    <button class="anim-btn" id="hitBtn">&#9654; Hit Ball</button>
+    <button class="anim-btn" id="swingBtn">&#9654; Swing Racket</button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#128247; Camera Views</div>
+    <button class="cam-btn active" data-cam="0">Default — Behind Baseline</button>
+    <button class="cam-btn" data-cam="1">Umpire Chair — Net Side</button>
+    <button class="cam-btn" data-cam="2">Overhead — Bird's Eye</button>
+    <button class="cam-btn" data-cam="3">Net Level — Close Up</button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#9881; Scene Controls</div>
+    <button class="tog" id="lightToggle">Lighting <span class="pill pill-on">ON</span></button>
+    <button class="tog" id="wireToggle">Wireframe <span class="pill pill-off">OFF</span></button>
+    <button class="tog" id="bloomToggle">Bloom Post-FX <span class="pill pill-on">ON</span></button>
+    <button class="tog" id="audioToggle">Audio <span class="pill pill-off">OFF</span></button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#127934; Scene Objects</div>
+    <div class="desc">
+      <strong>Court Surface</strong> — ITF hard-court, 23.77 × 10.97 m. Full surface, lines, and surrounds exported directly from Blender as GLB.<br><br>
+      <strong>Net &amp; Posts</strong> — 0.914 m high at centre. Net, posts, and court markings loaded from the Blender model.<br><br>
+      <strong>Racket</strong> — Animated by the Blender <code>RacketRootAction</code> clip via Three.js AnimationMixer.<br><br>
+      <strong>Ball</strong> — Animated by the Blender <code>BallAction.001</code> clip via Three.js AnimationMixer.
+    </div>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#128736; Render Pipeline</div>
+    <div class="desc">
+      Three.js r163 → EffectComposer → RenderPass → <strong>UnrealBloomPass</strong> (strength 0.4) → OutputPass. PCFSoftShadowMap, 2048 px shadow atlas.
+    </div>
+  </div>
+</div>
+
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/dataLoader.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls }  from 'three/addons/controls/OrbitControls.js';
+console.log('[Tennis] Loaded — interaction tracking via SportsAPI (dataLoader.js)');
+import { GLTFLoader }     from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass }from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass }     from 'three/addons/postprocessing/OutputPass.js';
+
+// Renderer setup, antialiased with capped pixel ratio so retina screens stay smooth
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;  //soft shadows for nicer edges
+// ACES tone mapping gives a more cinematic colour response
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+
+// Setting up the scene, sky-blue background with a bit of fog in the distance
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8aa7be);
+scene.fog = new THREE.FogExp2(0x8aa7be, 0.009);
+
+// Camera presets, Y-up world. ITF court is roughly 23.77 x 10.97m on the X-Z plane
+const CAMS = [
+  { pos: [0, 14, 26],       tgt: [0, 0.5, 0] },   // Behind Baseline
+  { pos: [6.4, 3.2, -1.5],  tgt: [0, 0.9, 0] },    // Umpire Chair, net side
+  { pos: [0, 40, 0.5],      tgt: [0, 0, 0] },       // Overhead, birds eye
+  { pos: [0, 2.5, 4],       tgt: [0, 1, 0] },       // Net level, close up
+];
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 400);
+camera.position.set(...CAMS[0].pos);
+
+// Orbit controls with damping so the camera glides smoothly
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 4;
+controls.maxDistance = 90;
+controls.maxPolarAngle = Math.PI / 2.05;  //stops the camera dipping below the court
+controls.target.set(...CAMS[0].tgt);
+controls.update();
+
+// Post-processing pipeline, adds the bloom glow on bright surfaces
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.40, 0.80, 0.85);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
+// Lighting setup, soft ambient plus a warm sun and a cool hemisphere fill
+const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+scene.add(ambient);
+const hemi = new THREE.HemisphereLight(0xaac8e0, 0x2d7a3a, 0.5);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff8e0, 1.6);
+sun.position.set(20, 50, 30);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);  //higher res shadow map for sharper edges
+Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 0.5, far: 200 });
+scene.add(sun);
+
+// Animation state, mixer holds all the clips imported from the Blender file
+const clock = new THREE.Clock();
+let mixer = null;
+const clips = {};
+
+// load tennis_court.glb below
+const allMats = [];  //collects every material so the wireframe toggle can flip them all
+
+// Frame-triggered audio, plays a sound when the animation reaches a specific frame
+const sounds = {};
+function loadSound(name, file) {
+  const a = new Audio(`../assets/audio/${file}`);
+  a.preload = 'auto';
+  sounds[name] = a;
+}
+loadSound('cheer', 'cheering.mp3');
+
+const FPS = 30;
+// when the ball animation hits frame 50 the cheering sound plays
+const triggers = [
+  { clip: 'BallAction.001', frame: 50, sound: 'cheer', vol: 0.9 },
+];
+const played = new Set();
+
+// called every frame, checks if any trigger should fire on the current frame
+function checkTriggers() {
+  triggers.forEach(t => {
+    const action = clips[t.clip];
+    if (!action || !action.isRunning()) return;
+    const key = `${t.clip}:${t.frame}`;
+    if (action.time * FPS >= t.frame && !played.has(key)) {
+      const s = sounds[t.sound];
+      if (s) { s.volume = t.vol; s.currentTime = 0; s.play().catch(() => {}); }
+      played.add(key);
+    }
+  });
+}
+
+new GLTFLoader().load('../assets/models/tennis_court.glb', gltf => {
+  const model = gltf.scene;
+  model.rotation.y = Math.PI;  //rotate so the court faces the default camera
+
+  // walk every mesh, turn shadows on and stash materials for the wireframe toggle
+  model.traverse(o => {
+    if (!o.isMesh) return;
+    o.castShadow = true;
+    o.receiveShadow = true;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    mats.forEach(m => allMats.push(m));
+  });
+
+  scene.add(model);
+
+  // Set up the AnimationMixer with every clip that came in from Blender
+  if (gltf.animations.length > 0) {
+    mixer = new THREE.AnimationMixer(model);
+    gltf.animations.forEach(clip => {
+      const action = mixer.clipAction(clip);
+      action.setLoop(THREE.LoopOnce, 1);
+      action.clampWhenFinished = true;  //freeze on the last frame instead of resetting
+      clips[clip.name] = action;
+    });
+
+    // re-enable the buttons once both clips have finished playing
+    mixer.addEventListener('finished', e => {
+      const isBall   = e.action === clips['BallAction.001'];
+      const isRacket = e.action === clips['RacketRootAction'];
+      if (isBall || isRacket) {
+        // wait until both animations are done before re-enabling the Hit button
+        const ballDone   = !clips['BallAction.001']   || !clips['BallAction.001'].isRunning();
+        const racketDone = !clips['RacketRootAction'] || !clips['RacketRootAction'].isRunning();
+        if (ballDone && racketDone) {
+          document.getElementById('hitBtn').disabled = false;
+          document.getElementById('hitBtn').classList.remove('playing');
+          document.getElementById('hitBtn').textContent = '▶ Hit Ball';
+          played.clear();  //reset so triggers can fire again next time
+        }
+        if (isRacket) {
+          document.getElementById('swingBtn').disabled = false;
+          document.getElementById('swingBtn').classList.remove('playing');
+          document.getElementById('swingBtn').textContent = '▶ Swing Racket';
+        }
+      }
+    });
+  }
+});
+
+// Animation buttons, Hit Ball plays both ball and racket clips together
+document.getElementById('hitBtn').addEventListener('click', () => {
+  const ball   = clips['BallAction.001'];
+  const racket = clips['RacketRootAction'];
+  if (!ball && !racket) return;
+  if (ball)   ball.reset().play();
+  if (racket) racket.reset().play();
+  document.getElementById('hitBtn').disabled = true;  //prevent double clicks while playing
+  document.getElementById('hitBtn').classList.add('playing');
+  document.getElementById('hitBtn').textContent = '⏳ Hit Ball';
+  played.clear();
+  // record the interaction in the database via the API
+  window.SportsAPI.recordInteraction('tennis', 'hit');
+});
+
+// Swing Racket button plays just the racket clip, used for practice swings
+document.getElementById('swingBtn').addEventListener('click', () => {
+  const action = clips['RacketRootAction'];
+  if (!action) return;
+  action.reset().play();
+  document.getElementById('swingBtn').disabled = true;
+  document.getElementById('swingBtn').classList.add('playing');
+  document.getElementById('swingBtn').textContent = '⏳ Swing Racket';
+  played.clear();
+  window.SportsAPI.recordInteraction('tennis', 'swing');
+});
+
+// Camera preset buttons, snap to the position and target for the chosen preset
+document.querySelectorAll('.cam-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const c = CAMS[+btn.dataset.cam];
+    camera.position.set(...c.pos);
+    controls.target.set(...c.tgt);
+    controls.update();
+  });
+});
+
+// Scene control toggles, lighting / wireframe / bloom switches in the side panel
+let lightsOn = true;
+document.getElementById('lightToggle').addEventListener('click', () => {
+  lightsOn = !lightsOn;
+  // dim all the lights and switch to a dark sky when turned off
+  ambient.intensity = lightsOn ? 0.65 : 0.04;
+  hemi.intensity    = lightsOn ? 0.5  : 0;
+  sun.intensity     = lightsOn ? 1.6  : 0;
+  scene.background  = new THREE.Color(lightsOn ? 0x8aa7be : 0x050510);
+  const b = document.getElementById('lightToggle');
+  b.innerHTML = `Lighting <span class="pill ${lightsOn ? 'pill-on' : 'pill-off'}">${lightsOn ? 'ON' : 'OFF'}</span>`;
+});
+
+let wireframe = false;
+document.getElementById('wireToggle').addEventListener('click', () => {
+  wireframe = !wireframe;
+  // flip wireframe on every material at once
+  allMats.forEach(m => { if (m.wireframe !== undefined) m.wireframe = wireframe; });
+  const b = document.getElementById('wireToggle');
+  b.innerHTML = `Wireframe <span class="pill ${wireframe ? 'pill-on' : 'pill-off'}">${wireframe ? 'ON' : 'OFF'}</span>`;
+});
+
+// toggle the bloom pass on and off without rebuilding the whole composer
+document.getElementById('bloomToggle').addEventListener('click', () => {
+  const on = bloomPass.strength > 0.1;
+  bloomPass.strength = on ? 0 : 0.40;
+  const b = document.getElementById('bloomToggle');
+  b.innerHTML = `Bloom Post-FX <span class="pill ${!on ? 'pill-on' : 'pill-off'}">${!on ? 'ON' : 'OFF'}</span>`;
+});
+
+// main animation loop, runs every frame
+(function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  controls.update();
+  if (mixer) {
+    mixer.update(dt);
+    if (audioEnabled) checkTriggers();  //only fire sound triggers when audio is enabled
+  }
+  composer.render();
+})();
+
+// keep the canvas filling the window when the browser is resized
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+});
+
+// Audio is off by default so the page doesnt blast sounds on first load
+let audioEnabled = false;
+
+function toggleAudio() {
+  audioEnabled = !audioEnabled;
+  const b = document.getElementById('audioToggle');
+  b.innerHTML = `Audio <span class="pill ${audioEnabled ? 'pill-on' : 'pill-off'}">${audioEnabled ? 'ON' : 'OFF'}</span>`;
+}
+
+document.getElementById('audioToggle').addEventListener('click', toggleAudio);
+</script>
+<script src="../js/drawer.js"></script>
+</body>
+</html>

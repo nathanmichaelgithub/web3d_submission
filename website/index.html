@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Nathan's Sports 3D</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive 3D sports visualisations — explore tennis, basketball, and football courts built with Blender and Three.js. Features animated ball physics, UnrealBloom post-processing, and real-time interaction tracking.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style_button.css">
+  <style>
+    body { background: #0a0e1a; min-height: 100vh; }
+    .content { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+<!-- Responsive hero background image, srcset gives 1x and 2x hints for retina screens -->
+<picture aria-hidden="true" style="position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;">
+  <source media="(min-width:1200px)"
+          srcset="assets/images/sports.jpeg 1x, assets/images/sports.jpeg 2x">
+  <img src="assets/images/sports.jpeg"
+       srcset="assets/images/sports.jpeg 800w, assets/images/sports.jpeg 1200w"
+       sizes="100vw"
+       alt=""
+       style="width:100%;height:100%;object-fit:cover;opacity:0.40;">
+</picture>
+<div style="position:fixed;inset:0;z-index:0;background:rgba(5,10,25,0.58);pointer-events:none;"></div>
+<main class="content">
+
+  <!--Homepage navbar-->
+  <nav class="top-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="index.html" class="nav-brand">SPORTS 3D</a>
+      <div class="d-flex gap-3">
+        <a href="pages/stats.html" class="nav-link">Stats</a>
+        <a href="pages/about.html" class="nav-link">About &amp; Docs</a>
+      </div>
+    </div>
+  </nav>
+
+  <!--Hero section with the big SPORTS 3D banner-->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-title">NATHAN'S SPORTS 3D</div>
+      <div class="hero-sub">Interactive 3D Sports Visualisations</div>
+
+    </div>
+  </section>
+
+  <!--cards for each of the three sports-->
+  <section class="container pb-5">
+    <div class="row g-4 justify-content-center">
+
+      <div class="col-12 col-sm-6 col-lg-4">
+        <div class="sport-card">
+          <span class="sport-icon">&#127934;</span>
+          <h3>TENNIS</h3>
+          <p>Hit and juggle on an ITF-standard hard court. Features a full-sized racket with a 18&times;18 string grid and frame-triggered audio.</p>
+          <div class="mb-3">
+            <span class="feature-pill">HIT</span>
+            <span class="feature-pill">JUGGLE</span>
+            <span class="feature-pill">4 Camera Views</span>
+          </div>
+          <a href="pages/tennis.html" class="btn-sport btn-tennis">Play Tennis</a>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-lg-4">
+        <div class="sport-card">
+          <span class="sport-icon">&#127936;</span>
+          <h3>BASKETBALL</h3>
+          <p>Shoot a perfect arc into the hoop or dribble on an indoor NBA-style hardwood court with arena lighting.</p>
+          <div class="mb-3">
+            <span class="feature-pill">SHOOT</span>
+            <span class="feature-pill">DRIBBLE</span>
+            <span class="feature-pill">4 Camera Views</span>
+          </div>
+          <a href="pages/basketball.html" class="btn-sport btn-basketball">Play Basketball</a>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-lg-4">
+        <div class="sport-card">
+          <span class="sport-icon">&#9917;</span>
+          <h3>FOOTBALL</h3>
+          <p>Shoot into a FIFA-standard goal from just outside the penalty box, or juggle on a striped grass pitch.</p>
+          <div class="mb-3">
+            <span class="feature-pill">SHOOT</span>
+            <span class="feature-pill">JUGGLE</span>
+            <span class="feature-pill">4 Camera Views</span>
+          </div>
+          <a href="pages/football.html" class="btn-sport btn-football">Play Football</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

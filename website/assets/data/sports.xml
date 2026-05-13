@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sports generated="2026-05-06" author="Nathan Michael" module="WEB3D">
+
+  <sport id="football" standard="FIFA">
+    <name>Football</name>
+    <pitch>
+      <length unit="m">105</length>
+      <width unit="m">68</width>
+      <goalWidth unit="m">7.32</goalWidth>
+      <goalHeight unit="m">2.44</goalHeight>
+      <penaltySpot unit="m">11</penaltySpot>
+    </pitch>
+    <scene>
+      <file>assets/models/football_court.glb</file>
+      <cameraUp>z</cameraUp>
+      <bloomStrength>0.35</bloomStrength>
+      <lights>6</lights>
+    </scene>
+  </sport>
+
+  <sport id="basketball" standard="NBA">
+    <name>Basketball</name>
+    <court>
+      <length unit="m">28</length>
+      <width unit="m">15</width>
+      <rimHeight unit="m">3.05</rimHeight>
+      <rimRadius unit="m">0.228</rimRadius>
+      <threePointRadius unit="m">7.24</threePointRadius>
+    </court>
+    <scene>
+      <file>assets/models/basketball_court.glb</file>
+      <cameraUp>z</cameraUp>
+      <bloomStrength>0.5</bloomStrength>
+      <lights>6</lights>
+    </scene>
+  </sport>
+
+  <sport id="tennis" standard="ITF">
+    <name>Tennis</name>
+    <court>
+      <length unit="m">23.77</length>
+      <width unit="m">8.23</width>
+      <doublesWidth unit="m">10.97</doublesWidth>
+      <netHeight unit="m">0.914</netHeight>
+      <serviceBoxDepth unit="m">6.4</serviceBoxDepth>
+    </court>
+    <scene>
+      <file>assets/models/tennis_court.glb</file>
+      <cameraUp>y</cameraUp>
+      <bloomStrength>0.4</bloomStrength>
+      <lights>4</lights>
+    </scene>
+  </sport>
+
+</sports>

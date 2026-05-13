@@ -1,0 +1,29 @@
+Sports 3D — Nathan Michael — WEB3D Assignment
+===============================================
+
+Three interactive 3D sports environments built with Blender 5.1 and Three.js r163.
+
+FOOTBALL (FIFA standard)
+  Pitch: 105 × 68 m
+  Features: procedural grass texture, ballistic free-kick simulation,
+            post-processing bloom, GLSL shader court markings
+
+BASKETBALL (NBA standard)
+  Court: 28 × 15 m | Rim height: 3.05 m
+  Features: hardwood / concrete / wireframe surface swap,
+            proximity sensor rim glow, dribble + shoot physics
+
+TENNIS (ITF hard court)
+  Court: 23.77 × 10.97 m (doubles) | Net: 0.914 m
+  Features: dat.GUI spotlight panel, procedural hard-court texture,
+            ball trajectory physics, shadow mapping
+
+Technology stack:
+  - Three.js r163 (ES modules, EffectComposer, UnrealBloomPass)
+  - Blender 5.1 + Python bpy API (procedural modelling)
+  - PHP 8 REST API + SQLite (interaction recording)
+  - Bootstrap 5.3 + custom CSS variables
+  - Web Fetch API (live AJAX polling every 5 s)
+
+Deployment: ITS PHP server
+Repository: GitHub (see README for URLs)

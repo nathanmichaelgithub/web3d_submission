@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Football — Sports 3D</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Interactive 3D football pitch — shoot into a FIFA-standard goal or juggle on a striped grass pitch. Built with Three.js and Blender.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/style_button.css">
+  <style>
+    body { overflow: hidden; background: #000; }
+    #side-panel { background: rgba(5,16,8,0.85); }
+    #status-badge { background: rgba(60,200,60,0.18); color: #4ef04e; border: 1px solid rgba(60,200,60,0.4); }
+
+    /* style for the ball animation button */
+    .anim-btn {
+      display: block; width: 100%; padding: 9px 12px; margin-bottom: 6px;
+      border-radius: 7px; border: 1px solid rgba(60,200,60,0.3);
+      background: rgba(60,200,60,0.08); color: #ccc;
+      cursor: pointer; font-size: 0.82rem; text-align: left;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .anim-btn:hover { background: rgba(60,200,60,0.16); color: #fff; }
+    .anim-btn.playing {
+      background: rgba(60,200,60,0.22); border-color: rgba(60,200,60,0.6); color: #4ef04e;
+    }
+  </style>
+</head>
+<body>
+
+<main>
+<canvas id="c"></canvas>
+
+<noscript>
+  <div style="position:fixed;inset:0;z-index:99999;background:#0d0d18;color:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:sans-serif;text-align:center;padding:20px;">
+    <h2>JavaScript Required</h2>
+    <p>This 3D football experience requires JavaScript. Please enable it in your browser settings.</p>
+    <a href="../index.html" style="color:#7ef;margin-top:12px;">&#8592; Return to Home</a>
+  </div>
+</noscript>
+
+
+
+<div id="navbar">
+  <a href="../index.html" aria-label="Go to home page">&#8592; Home</a>
+  <span id="nav-title">FOOTBALL</span>
+  <span id="status-badge">3D Live</span>
+</div>
+
+<div id="side-panel">
+  <div class="ps">
+    <div class="ps-title">&#9917; Animations</div>
+    <button class="anim-btn" id="animBallBtn">&#9654; Ball Animation</button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#128247; Camera Views</div>
+    <button class="cam-btn active" data-cam="0">Default — Behind Goal</button>
+    <button class="cam-btn" data-cam="1">Midfield Touchline</button>
+    <button class="cam-btn" data-cam="2">Overhead — Aerial</button>
+    <button class="cam-btn" data-cam="3">Corner Kick — Low Angle</button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#9881; Scene Controls</div>
+    <button class="tog" id="lightToggle">Sunlight <span class="pill pill-on">ON</span></button>
+    <button class="tog" id="wireToggle">Wireframe <span class="pill pill-off">OFF</span></button>
+    <button class="tog" id="bloomToggle">Bloom Post-FX <span class="pill pill-on">ON</span></button>
+    <button class="tog" id="audioToggle">Audio <span class="pill pill-off">OFF</span></button>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#9917; Blender Model</div>
+    <div class="desc">
+      <strong>Pitch</strong> — Full football surface with 8 alternating grass strips. Touchlines, half-line, penalty spot, penalty area and goal area markings — all from the Blender model.<br><br>
+      <strong>Goal</strong> — FIFA-standard posts, crossbar, back frame and net panels exported directly from Blender.<br><br>
+      <strong>Stands &amp; Crowd</strong> — Three-tier stand with 40 crowd figures. Orbit the camera left to see them.<br><br>
+      <strong>Ball</strong> — <code>SoccerBall</code> animation driven by the Blender <code>FootballBallAction</code> clip.
+    </div>
+  </div>
+  <div class="ps">
+    <div class="ps-title">&#128736; Render Pipeline</div>
+    <div class="desc">
+      Three.js r163 · GLTFLoader → EffectComposer → RenderPass → <strong>UnrealBloomPass</strong> (strength 0.35) → OutputPass. PCFSoftShadowMap, 2048 px shadow atlas.
+    </div>
+  </div>
+</div>
+
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/dataLoader.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE        from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+console.log('[Football] Loaded — interaction tracking via SportsAPI (dataLoader.js)');
+import { GLTFLoader }    from 'three/addons/loaders/GLTFLoader.js';
+import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
+
+// Renderer setup, antialiased with capped pixel ratio so it doesnt tank performance on retina screens
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+// Setting up the scene with a sky blue background and a bit of fog for depth
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 70, 200);
+
+// Camera presets, Z-up world with the goal at X=22.5, half-width Y=+/-15
+const CAMS = [
+  { pos: [30,   0,  8], tgt: [ 0,  0, 2] },  // Behind Goal
+  { pos: [ 0, -22,  7], tgt: [15,  0, 1] },  // Midfield Touchline
+  { pos: [10, -18, 50], tgt: [10,  0, 0] },  // Overhead — Aerial
+  { pos: [24, -17,  3], tgt: [ 8,  0, 1] },  // Corner Kick — Low Angle
+];
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 400);
+camera.up.set(0, 0, 1); //Tells Three.js the world is Z-up
+camera.position.set(...CAMS[0].pos);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 1;
+controls.maxDistance = 130;
+controls.maxPolarAngle = Math.PI / 1.85;
+controls.target.set(...CAMS[0].tgt);
+controls.update();
+
+// orbit diagnostic, logs the camera pos and target on drag end so i can tune the CAMS array
+controls.addEventListener('end', () => {
+  const p = camera.position, t = controls.target;
+  console.log(`pos:[${p.x.toFixed(1)},${p.y.toFixed(1)},${p.z.toFixed(1)}] tgt:[${t.x.toFixed(1)},${t.y.toFixed(1)},${t.z.toFixed(1)}]`);
+});
+
+// Post-processing pipeline, adds the bloom glow on top of the normal render pass
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.80, 0.88);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
+
+// Lighting setup, bright ambient plus a directional sun light that casts shadows across the pitch
+const ambient = new THREE.AmbientLight(0xffffff, 0.7);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xfff8e0, 1.4);
+sun.position.set(15, -10, 40);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -55, right: 55, top: 55, bottom: -55, near: 0.5, far: 160 });
+scene.add(sun);
+
+// Animation state, mixer holds all the Blender clips and clock tracks frame delta
+const clock = new THREE.Clock();
+let mixer = null;
+const clips = {};
+
+// Load the football pitch GLB
+const allMats = []; //collects every material so the wireframe toggle can flip them all
+
+// Frame-triggered audio, plays a crowd cheer when the ball animation hits frame 70
+const sounds = {};
+function loadSound(name, file) {
+  const a = new Audio(`../assets/audio/${file}`);
+  a.preload = 'auto';
+  sounds[name] = a;
+}
+loadSound('cheer', 'cheering.mp3');
+
+const FPS = 30;
+const triggers = [
+  { clip: 'FootballBallAction', frame: 70, sound: 'cheer', vol: 0.9 },
+];
+const played = new Set();
+
+function checkTriggers() {
+  triggers.forEach(t => {
+    const action = clips[t.clip];
+    if (!action || !action.isRunning()) return;
+    const key = `${t.clip}:${t.frame}`;
+    if (action.time * FPS >= t.frame && !played.has(key)) {
+      const s = sounds[t.sound];
+      if (s) { s.volume = t.vol; s.currentTime = 0; s.play().catch(() => {}); }
+      played.add(key);
+    }
+  });
+}
+
+new GLTFLoader().load('../assets/models/football_pitch.glb',
+  gltf => {
+    const model = gltf.scene;
+    model.rotation.x = Math.PI / 2;  // GLTF Y-up → Z-up world
+
+    model.traverse(o => {
+      if (!o.isMesh) return;
+      o.castShadow = true;
+      o.receiveShadow = true;
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach(m => allMats.push(m));
+    });
+
+    scene.add(model);
+
+    // Setup AnimationMixer with all Blender clips
+    if (gltf.animations.length > 0) {
+      mixer = new THREE.AnimationMixer(model);
+      gltf.animations.forEach(clip => {
+        const action = mixer.clipAction(clip);
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+        clips[clip.name] = action;
+      });
+
+      mixer.addEventListener('finished', e => {
+        if (e.action === clips['FootballBallAction']) {
+          ballAnimPlaying = false;
+          updateBallBtn();
+          played.clear();
+        }
+      });
+    }
+  },
+  undefined,
+  err => console.error('football_pitch.glb failed to load:', err)
+);
+
+// Animation button, single toggle that plays or stops the ball animation
+let ballAnimPlaying = false;
+
+function updateBallBtn() {
+  const btn = document.getElementById('animBallBtn');
+  btn.textContent = ballAnimPlaying ? '⏹ Ball Animation' : '▶ Ball Animation';
+  btn.classList.toggle('playing', ballAnimPlaying);
+}
+
+document.getElementById('animBallBtn').addEventListener('click', () => {
+  const action = clips['FootballBallAction'];
+  if (!action) return;
+  if (ballAnimPlaying) {
+    action.stop();
+    ballAnimPlaying = false;
+  } else {
+    action.reset().play();
+    ballAnimPlaying = true;
+    played.clear();
+    window.SportsAPI.recordInteraction('football', 'shoot'); //logs the interaction to the database
+  }
+  updateBallBtn();
+});
+
+// Scene control toggles, lights / wireframe / bloom switches in the side panel
+let lightsOn = true;
+document.getElementById('lightToggle').addEventListener('click', () => {
+  lightsOn = !lightsOn;
+  ambient.intensity = lightsOn ? 0.7 : 0.06;
+  sun.intensity     = lightsOn ? 1.4 : 0;
+  scene.background  = new THREE.Color(lightsOn ? 0x87ceeb : 0x050510);
+  const b = document.getElementById('lightToggle');
+  b.innerHTML = `Sunlight <span class="pill ${lightsOn ? 'pill-on' : 'pill-off'}">${lightsOn ? 'ON' : 'OFF'}</span>`;
+});
+
+let wireframe = false;
+document.getElementById('wireToggle').addEventListener('click', () => {
+  wireframe = !wireframe;
+  allMats.forEach(m => { if (m.wireframe !== undefined) m.wireframe = wireframe; });
+  const b = document.getElementById('wireToggle');
+  b.innerHTML = `Wireframe <span class="pill ${wireframe ? 'pill-on' : 'pill-off'}">${wireframe ? 'ON' : 'OFF'}</span>`;
+});
+
+document.getElementById('bloomToggle').addEventListener('click', () => {
+  const on = bloomPass.strength > 0.1;
+  bloomPass.strength = on ? 0 : 0.35;
+  const b = document.getElementById('bloomToggle');
+  b.innerHTML = `Bloom Post-FX <span class="pill ${!on ? 'pill-on' : 'pill-off'}">${!on ? 'ON' : 'OFF'}</span>`;
+});
+
+// Camera preset buttons, snap to the chosen position and target then update OrbitControls
+document.querySelectorAll('.cam-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cam-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const c = CAMS[+btn.dataset.cam];
+    camera.position.set(...c.pos);
+    controls.target.set(...c.tgt);
+    controls.update();
+  });
+});
+
+// main animation loop, runs every frame
+(function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  controls.update();
+  if (mixer) {
+    mixer.update(dt);
+    if (audioEnabled) checkTriggers(); //only check audio triggers if audio is enabled
+  }
+  composer.render();
+})();
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+});
+
+// Audio is off by default so the page doesnt blast sounds on first load
+let audioEnabled = false;
+
+function toggleAudio() {
+  audioEnabled = !audioEnabled;
+  const b = document.getElementById('audioToggle');
+  b.innerHTML = `Audio <span class="pill ${audioEnabled ? 'pill-on' : 'pill-off'}">${audioEnabled ? 'ON' : 'OFF'}</span>`;
+}
+
+document.getElementById('audioToggle').addEventListener('click', toggleAudio);
+</script>
+<script src="../js/drawer.js"></script>
+</body>
+</html>

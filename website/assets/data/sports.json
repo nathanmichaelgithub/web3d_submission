@@ -1,0 +1,61 @@
+{
+  "sports": [
+    {
+      "id": "football",
+      "name": "Football",
+      "standard": "FIFA",
+      "pitch": {
+        "length_m": 105,
+        "width_m": 68,
+        "goal_width_m": 7.32,
+        "goal_height_m": 2.44,
+        "penalty_spot_m": 11
+      },
+      "scene": {
+        "file": "assets/models/football_court.glb",
+        "camera_up": "z",
+        "bloom_strength": 0.35,
+        "lights": 6
+      }
+    },
+    {
+      "id": "basketball",
+      "name": "Basketball",
+      "standard": "NBA",
+      "court": {
+        "length_m": 28,
+        "width_m": 15,
+        "rim_height_m": 3.05,
+        "rim_radius_m": 0.228,
+        "three_point_radius_m": 7.24
+      },
+      "scene": {
+        "file": "assets/models/basketball_court.glb",
+        "camera_up": "z",
+        "bloom_strength": 0.5,
+        "lights": 6
+      }
+    },
+    {
+      "id": "tennis",
+      "name": "Tennis",
+      "standard": "ITF",
+      "court": {
+        "length_m": 23.77,
+        "width_m": 8.23,
+        "doubles_width_m": 10.97,
+        "net_height_m": 0.914,
+        "service_box_depth_m": 6.4
+      },
+      "scene": {
+        "file": "assets/models/tennis_court.glb",
+        "camera_up": "y",
+        "bloom_strength": 0.4,
+        "lights": 4
+      }
+    }
+  ],
+  "generated": "2026-05-06",
+  "author": "Nathan Michael",
+  "module": "WEB3D"
+}

@@ -1,0 +1,15 @@
+{
+  "name": "sports-3d",
+  "version": "1.0.0",
+  "description": "Interactive 3D sports visualisations — Nathan Michael WEB3D Assignment",
+  "main": "index.html",
+  "scripts": {
+    "start": "php -S localhost:8080 -t .",
+    "dev": "php -S localhost:8080 -t . & open http://localhost:8080"
+  },
+  "keywords": ["three.js", "3d", "sports", "blender", "webgl"],
+  "author": "Nathan Michael",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
